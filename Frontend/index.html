@@ -10,10 +10,22 @@
     <p>
       Demo page for embedding the chatbot widget.
     </p>
-    <script 
-      src="scripts/embed.js"
-      id="chatbot-embed-script"
-      data-colors='{"primary":"#009688","primaryDark":"#00695c","accent":"#b2dfdb"}'
-    ></script>
+    <!-- Chatbot widget configuration -->
+    <script>
+      window.ChatbotWidgetConfig = {
+        colors: {
+          primary: "#009688",
+          primaryDark: "#00695c",
+          accent: "#b2dfdb",
+        },
+        // EmailJS credentials – replace with real values
+        emailJsUserId: "YOUR_PUBLIC_KEY",
+        emailJsServiceId: "YOUR_SERVICE_ID",
+        emailJsSupportTemplateId: "SUPPORT_TEMPLATE_ID", // notification to support desk
+        emailJsUserTemplateId: "USER_CONFIRM_TEMPLATE_ID", // confirmation to requester
+      };
+    </script>
+    <!-- Load the chatbot widget -->
+    <script src="scripts/embed.js" id="chatbot-embed-script"></script>
   </body>
 </html> 

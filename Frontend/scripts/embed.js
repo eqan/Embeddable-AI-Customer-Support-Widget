@@ -325,6 +325,45 @@ body.show-chatbot .chatbot-popup {
   border-radius: 13px 3px 13px 3px;
 }
 
+/* Support ticket form */
+.support-form-wrapper {
+  width: 100%;
+}
+.support-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+.support-form label {
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.support-form input,
+.support-form textarea,
+.support-form select {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-family: "Inter", sans-serif;
+}
+.support-form button[type="submit"] {
+  align-self: flex-start;
+  background: ${colors.primary};
+  color: #fff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.support-form button[type="submit"]:hover {
+  background: ${colors.primaryDark};
+}
+
 em-emoji-picker {
   position: absolute;
   left: 50%;
@@ -465,6 +504,23 @@ em-emoji-picker {
     });
   }
 
+  // EmailJS loader
+  function loadEmailJS() {
+    return new Promise(res => {
+      if (window.emailjs) return res();
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js';
+      s.onload = () => {
+        if (window.emailjs?.init) {
+          const publicKey = window.ChatbotWidgetConfig?.emailJsUserId || 'YOUR_PUBLIC_KEY';
+          window.emailjs.init(publicKey);
+        }
+        res();
+      };
+      document.head.appendChild(s);
+    });
+  }
+
   // -------------------------------
   // 4. Main chatbot logic
   // -------------------------------
@@ -540,6 +596,68 @@ em-emoji-picker {
 
           // Update the bot message text to guide the user
           messageElement.textContent = "Select schedule from above";
+        } else if (apiResponseText.toLowerCase() === "human-message") {
+          // Show support ticket form
+          const wrapper = document.createElement("div");
+          wrapper.classList.add("support-form-wrapper");
+          wrapper.innerHTML = `
+            <form class="support-form">
+              <label>Name*<input type="text" name="name" required /></label>
+              <label>Email*<input type="email" name="email" required /></label>
+              <label>Phone<input type="tel" name="phone" /></label>
+              <label>Message / Issue*<textarea name="message" rows="3" required></textarea></label>
+              <label>Priority<select name="priority">
+                  <option value="Low">Low</option>
+                  <option value="Medium" selected>Medium</option>
+                  <option value="High">High</option>
+                  <option value="Urgent">Urgent</option>
+              </select></label>
+              <button type="submit">Submit</button>
+            </form>`;
+
+          // Insert form just above bot bubble
+          chatBody.insertBefore(wrapper, incomingMessageDiv);
+          messageElement.textContent = "Please fill out the form above to talk to a human agent.";
+
+          const form = wrapper.querySelector(".support-form");
+          form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const fd = new FormData(form);
+            const ticketId = "TICKET-" + Date.now().toString(36).toUpperCase();
+
+            const payload = {
+              name: fd.get("name"),
+              email: fd.get("email"),
+              phone: fd.get("phone") || "N/A",
+              message: fd.get("message"),
+              priority: fd.get("priority"),
+              ticketId,
+            };
+
+            try {
+              // Send email to support team
+              await emailjs.send(
+                window.ChatbotWidgetConfig?.emailJsServiceId || 'YOUR_SERVICE_ID',
+                window.ChatbotWidgetConfig?.emailJsSupportTemplateId || 'SUPPORT_TEMPLATE_ID',
+                payload
+              );
+
+              // Send auto-confirmation email to user
+              await emailjs.send(
+                window.ChatbotWidgetConfig?.emailJsServiceId || 'YOUR_SERVICE_ID',
+                window.ChatbotWidgetConfig?.emailJsUserTemplateId || 'USER_CONFIRM_TEMPLATE_ID',
+                payload
+              );
+
+              // Acknowledge in chat
+              messageElement.textContent = `Thank you! Your ticket (${ticketId}) has been created. Our support team will reach out to you at ${payload.email}.`;
+              wrapper.remove();
+            } catch (err) {
+              console.error(err);
+              messageElement.textContent = "Failed to submit your request. Please try again later.";
+              messageElement.style.color = "#ff0000";
+            }
+          });
         } else {
           messageElement.innerHTML = marked.parse(apiResponseText);
         }
@@ -635,7 +753,7 @@ em-emoji-picker {
     injectStyle();
     injectFontLinks();
     injectMarkup();
-    await Promise.all([loadEmojiMart(), loadMarkdownLib()]);
+    await Promise.all([loadEmojiMart(), loadMarkdownLib(), loadEmailJS()]);
     initLogic();
   }
 
