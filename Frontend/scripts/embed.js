@@ -6,7 +6,13 @@
   // Read color config from script tag if present
   let userColors = {};
   try {
-    const scriptTag = document.currentScript || document.getElementById('chatbot-embed-script');
+    // Find the script tag that loaded this file
+    let scriptTag = document.currentScript;
+    if (!scriptTag) {
+      // Fallback for browsers that don't support document.currentScript
+      const scripts = document.querySelectorAll('script[src]');
+      scriptTag = Array.from(scripts).find(s => s.src && s.src.includes('embed.js'));
+    }
     if (scriptTag && scriptTag.dataset.colors) {
       userColors = JSON.parse(scriptTag.dataset.colors);
     } else if (window.ChatbotWidgetConfig?.colors) {
@@ -215,7 +221,7 @@ body.show-chatbot .chatbot-popup {
   width: 7px;
   opacity: 0.7;
   border-radius: 50%;
-  background: ${colors.primary};
+  background: ${colors.accent};
   animation: dotPulse 1.8s ease-in-out infinite;
 }
 
@@ -248,7 +254,7 @@ body.show-chatbot .chatbot-popup {
   align-items: center;
   background: white;
   border-radius: 32px;
-  outline: 1px solid #cccce5;
+  outline: 1px solid ${colors.accent};
 }
 
 .chat-footer .chat-form:focus-within {
@@ -449,6 +455,16 @@ em-emoji-picker {
     });
   }
 
+  function loadMarkdownLib() {
+    return new Promise(res => {
+      if (window.marked) return res();
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/marked@15.0.12/lib/marked.umd.min.js';
+      s.onload = res;
+      document.head.appendChild(s);
+    });
+  }
+
   // -------------------------------
   // 4. Main chatbot logic
   // -------------------------------
@@ -461,7 +477,7 @@ em-emoji-picker {
     const chatForm = document.querySelector(".chat-form");
 
     // API setup
-    const API_KEY = "";
+    const API_KEY = "AIzaSyAvtlgLMG9QaPKEsvBomeh84cooqKkst9I";
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
 
     const userData = {
@@ -511,7 +527,7 @@ em-emoji-picker {
         const apiResponseText = data.candidates[0].content.parts[0].text
           .replace(/\*\*(.*?)\*\*/g, "$1")
           .trim();
-        messageElement.innerText = apiResponseText;
+        messageElement.innerHTML = marked.parse(apiResponseText);
 
         chatHistory.push({
           role: "model",
@@ -604,7 +620,7 @@ em-emoji-picker {
     injectStyle();
     injectFontLinks();
     injectMarkup();
-    await loadEmojiMart();
+    await Promise.all([loadEmojiMart(), loadMarkdownLib()]);
     initLogic();
   }
 
