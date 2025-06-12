@@ -3,6 +3,26 @@
   // -------------------------------
   // 1. Styles (CSS)
   // -------------------------------
+  // Read color config from script tag if present
+  let userColors = {};
+  try {
+    const scriptTag = document.currentScript || document.getElementById('chatbot-embed-script');
+    if (scriptTag && scriptTag.dataset.colors) {
+      userColors = JSON.parse(scriptTag.dataset.colors);
+    } else if (window.ChatbotWidgetConfig?.colors) {
+      userColors = window.ChatbotWidgetConfig.colors;
+    }
+  } catch (e) {
+    console.warn('Invalid data-colors JSON for chatbot:', e);
+  }
+
+  const defaultColors = {
+    primary: "#5350c4",
+    primaryDark: "#3d39ac",
+    accent: "#ccccf5"
+  };
+  const colors = { ...defaultColors, ...userColors };
+
   const css = `@import url("https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap");
 
 * {
@@ -24,7 +44,7 @@
   justify-content: center;
   cursor: pointer;
   border-radius: 50%;
-  background: #5350c4;
+  background: ${colors.primary};
   transition: all 0.2s ease;
 }
 
