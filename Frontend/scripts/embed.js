@@ -528,17 +528,21 @@ em-emoji-picker {
           .replace(/\*\*(.*?)\*\*/g, "$1")
           .trim();
 
-        // Insert Calendly iframe JUST ABOVE this bot message so that it is not treated as a chat bubble
-        const iframeWrapper = document.createElement("div");
-        iframeWrapper.classList.add("calendly-embed-wrapper");
-        iframeWrapper.innerHTML =
-          '<iframe src="https://calendly.com/eqan-ahmad123/customer-agent" style="width: 100%; min-width: 400px; height: 600px; border:none;" frameborder="0"></iframe>';
+        if (apiResponseText.toLowerCase() === "calendly") {
+          // Insert Calendly iframe JUST ABOVE this bot message so that it is not treated as a chat bubble
+          const iframeWrapper = document.createElement("div");
+          iframeWrapper.classList.add("calendly-embed-wrapper");
+          iframeWrapper.innerHTML =
+            '<iframe src="https://calendly.com/eqan-ahmad123/customer-agent" style="width: 100%; min-width: 400px; height: 600px; border:none;" frameborder="0"></iframe>';
 
-        // Place iframe immediately before the incoming bot message element
-        chatBody.insertBefore(iframeWrapper, incomingMessageDiv);
+          // Place iframe immediately before the incoming bot message element
+          chatBody.insertBefore(iframeWrapper, incomingMessageDiv);
 
-        // Update the bot message text to guide the user
-        messageElement.textContent = "Select schedule from above";
+          // Update the bot message text to guide the user
+          messageElement.textContent = "Select schedule from above";
+        } else {
+          messageElement.innerHTML = marked.parse(apiResponseText);
+        }
 
         chatHistory.push({
           role: "model",
