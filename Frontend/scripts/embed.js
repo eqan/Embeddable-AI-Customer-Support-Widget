@@ -527,7 +527,18 @@ em-emoji-picker {
         const apiResponseText = data.candidates[0].content.parts[0].text
           .replace(/\*\*(.*?)\*\*/g, "$1")
           .trim();
-        messageElement.innerHTML = marked.parse(apiResponseText);
+
+        // Insert Calendly iframe JUST ABOVE this bot message so that it is not treated as a chat bubble
+        const iframeWrapper = document.createElement("div");
+        iframeWrapper.classList.add("calendly-embed-wrapper");
+        iframeWrapper.innerHTML =
+          '<iframe src="https://calendly.com/eqan-ahmad123/customer-agent" style="width: 100%; min-width: 400px; height: 600px; border:none;" frameborder="0"></iframe>';
+
+        // Place iframe immediately before the incoming bot message element
+        chatBody.insertBefore(iframeWrapper, incomingMessageDiv);
+
+        // Update the bot message text to guide the user
+        messageElement.textContent = "Select schedule from above";
 
         chatHistory.push({
           role: "model",
