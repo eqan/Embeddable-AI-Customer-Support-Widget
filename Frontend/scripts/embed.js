@@ -90,7 +90,7 @@ body.show-chatbot .chatbot-popup {
 .chat-header {
   display: flex;
   align-items: center;
-  background: #5350c4;
+  background: ${colors.primary};
   padding: 15px 22px;
   justify-content: space-between;
 }
@@ -105,7 +105,7 @@ body.show-chatbot .chatbot-popup {
   height: 35px;
   width: 35px;
   padding: 6px;
-  fill: #5350c4;
+  fill: ${colors.primary};
   flex-shrink: 0;
   background: #fff;
   border-radius: 50%;
@@ -132,7 +132,7 @@ body.show-chatbot .chatbot-popup {
 }
 
 .chat-header #close-chatbot:hover {
-  background: #3d39ac;
+  background: ${colors.primaryDark};
 }
 
 .chat-body {
@@ -144,7 +144,7 @@ body.show-chatbot .chatbot-popup {
   overflow-y: auto;
   flex-direction: column;
   scrollbar-width: thin;
-  scrollbar-color: #ccccf5 transparent;
+  scrollbar-color: ${colors.accent} transparent;
 }
 
 .chat-body .message {
@@ -161,7 +161,7 @@ body.show-chatbot .chatbot-popup {
   flex-shrink: 0;
   margin-bottom: 2px;
   align-self: flex-end;
-  background: #5350c4;
+  background: ${colors.primary};
   border-radius: 50%;
 }
 
@@ -188,7 +188,7 @@ body.show-chatbot .chatbot-popup {
 
 .chat-body .user-message .message-text {
   color: #fff;
-  background-color: #5350c4;
+  background-color: ${colors.primary};
   border-radius: 13px 13px 3px 13px;
 }
 
@@ -215,7 +215,7 @@ body.show-chatbot .chatbot-popup {
   width: 7px;
   opacity: 0.7;
   border-radius: 50%;
-  background: #6f6bc2;
+  background: ${colors.primary};
   animation: dotPulse 1.8s ease-in-out infinite;
 }
 
@@ -252,7 +252,7 @@ body.show-chatbot .chatbot-popup {
 }
 
 .chat-footer .chat-form:focus-within {
-  outline: 2px solid #5350c4;
+  outline: 2px solid ${colors.primary};
 }
 
 .chat-form .message-input {
@@ -271,7 +271,7 @@ body.show-chatbot .chatbot-popup {
 }
 
 .chat-form .message-input::hover {
-  scrollbar-color: #ccccf5 transparent;
+  scrollbar-color: ${colors.accent} transparent;
 }
 
 .chat-form .chat-controls {
@@ -298,7 +298,7 @@ body.show-chatbot .chatbot-popup {
 .chat-form .chat-controls #send-message {
   color: #fff;
   display: none;
-  background: #5350c4;
+  background: ${colors.primary};
 }
 
 .chat-form .message-input:valid ~ .chat-controls #send-message {
@@ -306,7 +306,7 @@ body.show-chatbot .chatbot-popup {
 }
 
 .chat-form .chat-controls #send-message:hover {
-  background: #3d39ac;
+  background: ${colors.primaryDark};
 }
 
 .chat-form .chat-controls button:hover {
@@ -450,7 +450,7 @@ em-emoji-picker {
   }
 
   // -------------------------------
-  // 4. Main chatbot logic (adapted from original script.js)
+  // 4. Main chatbot logic
   // -------------------------------
   function initLogic() {
     const chatBody = document.querySelector(".chat-body");
