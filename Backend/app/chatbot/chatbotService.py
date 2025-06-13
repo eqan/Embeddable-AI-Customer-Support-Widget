@@ -38,15 +38,24 @@ def clean_and_parse_json(response_text):
 async def generate_result(chatbot_request: ChatbotRequest):
     model_name = settings.model_name or "gemini-2.0-flash"
 
-    prompt = load_prompt().replace("{message}", chatbot_request.message)
+    prompt = load_prompt()
+    prompt = prompt.replace("{website_url}", chatbot_request.website_url)
+    prompt = prompt.replace("{message}", chatbot_request.message)
 
     # Build the request payload with Google Search grounding
     endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={settings.model_api_key}"
 
+    # chat_history is assumed to be a list like:
+    # [{"role": "user", "content": "Hi"},
+    #  {"role": "model","content": "Hello!"}]
+    history_contents = [
+        {"role": turn["role"], "parts": [{"text": turn["content"]}]}
+        for turn in chatbot_request.chat_history
+    ]
+
     payload = {
-        "contents": [
-            {"parts": [{"text": prompt}]},
-            {"parts": [{"text": chatbot_request.message}]}
+        "contents": history_contents + [
+            {"role": "user", "parts": [{"text": chatbot_request.message}]}
         ],
         "generation_config": generation_config,
         "tools": [
