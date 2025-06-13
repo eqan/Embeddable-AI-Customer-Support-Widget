@@ -24,9 +24,9 @@ async def chatbot_response(request: Request):
             
         try:
             # Verify JWT token
-            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            extracted_payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
             # Store user info for later use if needed
-            user_email = payload.get("email")
+            user_email = extracted_payload.get("email")
             user = await get_user(user_email)
             if user.blackListed:
                 return {"code": 400, "error": "User is blacklisted"}
