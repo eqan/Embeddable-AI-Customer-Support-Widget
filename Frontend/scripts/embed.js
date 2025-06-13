@@ -826,11 +826,13 @@ em-emoji-picker {
     sendMessageButton.addEventListener("click", handleOutgoingMessage);
 
     chatbotToggler.addEventListener("click", async () => {
+      console.log("Chatbot toggler clicked");
       if (!getStoredToken()) {
         await loadGoogleAuth();
-        const token = await ensureAuthenticated();
-        if (!token) return; // user cancelled or failed
       }
+      const token = await ensureAuthenticated();
+      if (!token) return; // user cancelled or failed
+      console.log("Token:", token);
       document.body.classList.toggle("show-chatbot");
     });
 
