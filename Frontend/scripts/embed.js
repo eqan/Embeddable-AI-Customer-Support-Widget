@@ -601,18 +601,18 @@ em-emoji-picker {
           const wrapper = document.createElement("div");
           wrapper.classList.add("support-form-wrapper");
           wrapper.innerHTML = `
-            <form class="support-form">
-              <label>Name*<input type="text" name="name" required /></label>
-              <label>Email*<input type="email" name="email" required /></label>
-              <label>Phone<input type="tel" name="phone" /></label>
-              <label>Message / Issue*<textarea name="message" rows="3" required></textarea></label>
-              <label>Priority<select name="priority">
+            <form class="support-form" style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+              <label style="display: block; margin-bottom: 10px;">Name*<input type="text" name="name" required style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;" /></label>
+              <label style="display: block; margin-bottom: 10px;">Email*<input type="email" name="email" required style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;" /></label>
+              <label style="display: block; margin-bottom: 10px;">Phone<input type="tel" name="phone" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;" /></label>
+              <label style="display: block; margin-bottom: 10px;">Message / Issue*<textarea name="message" rows="3" required style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;"></textarea></label>
+              <label style="display: block; margin-bottom: 10px;">Priority<select name="priority" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;">
                   <option value="Low">Low</option>
                   <option value="Medium" selected>Medium</option>
                   <option value="High">High</option>
                   <option value="Urgent">Urgent</option>
               </select></label>
-              <button type="submit">Submit</button>
+              <button type="submit" style="background-color: ${colors.primary}; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer;">Submit</button>
             </form>`;
 
           // Insert form just above bot bubble
