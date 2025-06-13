@@ -27,7 +27,7 @@ def clean_and_parse_json(response_text):
     Raises:
         json.JSONDecodeError: If JSON parsing fails
     """
-    print("This is the response text: ", response_text)
+    # print("This is the response text: ", response_text)
     
     # Remove markdown code blocks
     cleaned_text = re.sub(r'```(?:json)?\s*|\s*```', '', response_text)
@@ -125,7 +125,7 @@ async def generate_result(chatbot_request: ChatbotRequest, user_id: int) -> Chat
         try:
             resp = requests.post(endpoint, headers=headers, data=json.dumps(payload), timeout=60)
             data = resp.json()
-            print(f"[Gemini] Attempt {attempt}: {data}")
+            # print(f"[Gemini] Attempt {attempt}: {data}")
 
             if not resp.ok:
                 raise HTTPException(status_code=resp.status_code, detail=f"Upstream LLM error: {resp.text}")
@@ -139,6 +139,7 @@ async def generate_result(chatbot_request: ChatbotRequest, user_id: int) -> Chat
 
             # Will raise JSONDecodeError on schema mismatch which we catch below.
             response = clean_and_parse_json(json_block)
+            chatbot_request.chat_history.append({"role": "model", "content": response.response})
             await save_chat_history(chatbot_request, user_id)
             return response
 
@@ -163,7 +164,7 @@ async def save_chat_history(chatbot_request: ChatbotRequest, user_id: int):
             user_id=user_id,
             session_id=chatbot_request.session_id,
             message=chatbot_request.message,
-            response=getattr(chatbot_request, 'response', None),
+            chat_history=str(chatbot_request.chat_history),
             created_at=datetime.utcnow(),
             updated_at=datetime.utcnow(),
         )
@@ -186,7 +187,10 @@ async def get_chat_history(session_id: str):
     try:
         # Get chat history for the given session_id
         chat_history = db.query(Chat).filter(Chat.session_id == session_id).all()
-        return chat_history
+        if chat_history:
+            return chat_history
+        else:
+            return None
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
@@ -196,11 +200,15 @@ async def update_chat_history(chatbot_request: ChatbotRequest):
     db = Session()
     try:
         chat = db.query(Chat).filter(Chat.session_id == chatbot_request.session_id).first()
-        chat.message = chatbot_request.message
-        chat.response = chatbot_request.response
-        db.commit()
-        db.refresh(chat)
-        return chat
+        if chat:
+            chat.message = chatbot_request.message
+            chat.chat_history = str(chatbot_request.chat_history)
+            chat.updated_at = datetime.utcnow()
+            db.commit()
+            db.refresh(chat)
+            return chat
+        else:
+            return None
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))

@@ -8,7 +8,7 @@ class Chat(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     session_id = Column(String, nullable=False)
     message = Column(Text, nullable=False)
-    response = Column(Text, nullable=False)
+    chat_history = Column(Text, nullable=False)
     created_at = Column(DateTime, nullable=False)
     updated_at = Column(DateTime, nullable=False)
 
