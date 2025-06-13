@@ -555,12 +555,31 @@ em-emoji-picker {
       document.head.appendChild(s);
     });
   }
-
+  
+  function verifyToken(token) {
+    return new Promise(async (resolve) => {
+      const res = await fetch(`${window.ChatbotWidgetConfig?.backendBaseUrl}/verify-token`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || data.message || 'Authentication failed');
+      console.log("User Verified: ", data.user.email);
+      resolve(data.user);
+    });
+  }
+  
   // Ensure the user is authenticated before using the chatbot
   function ensureAuthenticated() {
     return new Promise(async (resolve) => {
       const stored = localStorage.getItem('chatbotAuthToken');
-      if (stored) return resolve(stored);
+      if (stored) {
+        const user = await verifyToken(stored);
+        if (user) return resolve(stored);
+        else {
+          localStorage.removeItem('chatbotAuthToken');
+        }
+      }
 
       // Build overlay markup
       const overlay = document.createElement('div');
