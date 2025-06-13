@@ -4,6 +4,10 @@ from config.config import generation_config
 from config.settings import Settings
 import requests
 import json
+from chatbot.dtos.chatbot_response import ChatbotResponse
+from pydantic import ValidationError as ResponseValidationError
+from fastapi import HTTPException
+import re
 
 settings = Settings()
 
@@ -20,8 +24,7 @@ def clean_and_parse_json(response_text):
     Raises:
         json.JSONDecodeError: If JSON parsing fails
     """
-    import json
-    import re
+    print("This is the response text: ", response_text)
     
     # Remove markdown code blocks
     cleaned_text = re.sub(r'```(?:json)?\s*|\s*```', '', response_text)
@@ -33,14 +36,58 @@ def clean_and_parse_json(response_text):
     cleaned_text = cleaned_text.strip()
     
     # Parse JSON
-    return json.loads(cleaned_text)
+    parsed_json = json.loads(cleaned_text)
 
-async def generate_result(chatbot_request: ChatbotRequest):
+    # Validate JSON against expected schema using pydantic model
+    try:
+        validated = ChatbotResponse(**parsed_json)
+    except ResponseValidationError as e:
+        # Re-raise as JSONDecodeError to keep existing error handling semantics
+        raise json.JSONDecodeError(f"LLM response schema mismatch: {e}", cleaned_text, 0)
+
+    # Return the validated Pydantic model itself so downstream callers keep strong typing
+    return validated
+
+# Helper to locate the JSON block Gemini often wraps in back-ticks inside the candidate
+def _extract_json_from_parts(parts: list[dict]) -> str:
+    """Return the first JSON object found inside the candidate parts array.
+
+    Gemini sometimes returns plain-text followed by a Markdown code-block that
+    contains the structured JSON we asked for.  This helper walks the parts in
+    reverse order (most specific content last) and extracts the substring
+    between the first opening and its matching closing curly brace.
+    """
+    for part in reversed(parts):
+        if not isinstance(part, dict):
+            continue
+        txt = part.get("text", "")
+        # Quickly skip if there is no opening brace
+        if "{" not in txt:
+            continue
+        # Remove ```json fenced code block markers if present
+        cleaned = re.sub(r"```(?:json)?\s*|\s*```", "", txt).strip()
+        # Grab the JSON substring (from first '{' to last '}')
+        m_start = cleaned.find("{")
+        m_end = cleaned.rfind("}")
+        if m_start != -1 and m_end != -1 and m_end > m_start:
+            possible_json = cleaned[m_start : m_end + 1]
+            try:
+                # validate quickly
+                json.loads(possible_json)
+                return possible_json
+            except json.JSONDecodeError:
+                continue
+    raise ValueError("No JSON object found in LLM response parts")
+
+async def generate_result(chatbot_request: ChatbotRequest) -> ChatbotResponse:
     model_name = settings.model_name or "gemini-2.0-flash"
 
     prompt = load_prompt()
     prompt = prompt.replace("{website_url}", chatbot_request.website_url)
     prompt = prompt.replace("{message}", chatbot_request.message)
+    prompt = prompt.replace("{website_description}", chatbot_request.website_description)
+    # print("prompt: ", prompt) 
+    
 
     # Build the request payload with Google Search grounding
     endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={settings.model_api_key}"
@@ -54,34 +101,33 @@ async def generate_result(chatbot_request: ChatbotRequest):
     ]
 
     payload = {
-        "contents": history_contents + [
+        "contents": [
+            {"role": "model", "parts": [{"text": prompt}]}
+        ] + history_contents + [
             {"role": "user", "parts": [{"text": chatbot_request.message}]}
         ],
-        "generation_config": generation_config,
-        "tools": [
-            {
-                "google_search_retrieval": {
-                    "dynamic_retrieval_config": {
-                        "mode": "MODE_DYNAMIC",
-                        "dynamic_threshold": 0.6
-                    }
-                }
-            }
+        "generationConfig": generation_config,
+          "tools": [
+            { "googleSearch": {} },   # Gemini REST expects camelCase tool names
         ]
     }
 
     headers = {"Content-Type": "application/json"}
 
     resp = requests.post(endpoint, headers=headers, data=json.dumps(payload), timeout=60)
-
-    if not resp.ok:
-        return {"code": resp.status_code, "error": resp.text}
-
     data = resp.json()
+    print("resp: ", data)
+    if not resp.ok:
+        raise HTTPException(status_code=resp.status_code, detail=f"Upstream LLM error: {resp.text}")
 
     try:
-        raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
+        parts = data["candidates"][0]["content"]["parts"]
     except (KeyError, IndexError):
-        return {"code": 500, "error": "Unexpected response structure", "raw": data}
+        raise HTTPException(status_code=500, detail="Unexpected response structure from LLM")
 
-    return clean_and_parse_json(raw_text)
+    try:
+        json_block = _extract_json_from_parts(parts)
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return clean_and_parse_json(json_block)

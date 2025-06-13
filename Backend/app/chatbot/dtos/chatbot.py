@@ -4,6 +4,6 @@ class ChatbotRequest(BaseModel):
     message: str
     token: str
     session_id: str
-    chat_history: list[dict] = None
-    website_url: str = None
-    website_description: str = None
+    chat_history: list[dict]
+    website_url: str
+    website_description: str

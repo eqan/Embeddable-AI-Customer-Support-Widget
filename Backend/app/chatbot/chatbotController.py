@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, HTTPException
 from chatbot.dtos.chatbot import ChatbotRequest
+from chatbot.dtos.chatbot_response import ChatbotResponse
 from chatbot.chatbotService import generate_result
 from config.config import limiter
 import jwt
@@ -13,14 +14,14 @@ ALGORITHM = settings.algorithm
 router = APIRouter()
 
 
-@router.post("/chatbot-response")
+@router.post("/chatbot-response", response_model=ChatbotResponse)
 @limiter.limit("5/second")
 async def chatbot_response(request: Request):
     try:
         payload = await request.json()
         token = payload.get("token")
         if not token:
-            return {"code": 400, "error": "Missing authentication token"}
+            raise HTTPException(status_code=400, detail="Missing authentication token")
             
         try:
             # Verify JWT token
@@ -32,22 +33,22 @@ async def chatbot_response(request: Request):
                 return {"code": 400, "error": "User is blacklisted"}
             print(f"Token verified for user: {user_email}")
         except jwt.ExpiredSignatureError:
-            return {"code": 400, "error": "Token expired"}
+            raise HTTPException(status_code=400, detail="Token expired")
         except jwt.InvalidTokenError:
-            return {"code": 400, "error": "Invalid token"}
-        except Exception as e:
-            return {"code": 400, "error": "Token verification failed"}
+            raise HTTPException(status_code=400, detail="Invalid token")
+        except Exception:
+            raise HTTPException(status_code=400, detail="Token verification failed")
             
         # Only accept connection if token is valid
         chatbot_request = None
         try:
         	payload = await request.json()
         	chatbot_request = ChatbotRequest(**payload)
-        except Exception as e:
-        	return {"code": 400, "error": "Invalid payload"}
+        except Exception:
+        	raise HTTPException(status_code=400, detail="Invalid payload")
         if chatbot_request is not None:
         	return await generate_result(chatbot_request)
         else:
-        	return {"code": 400, "error": "Invalid payload"}
-    except Exception as e:
-        return {"code": 400, "error": "Invalid payload"}
+            raise HTTPException(status_code=400, detail="Invalid payload")
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid payload")

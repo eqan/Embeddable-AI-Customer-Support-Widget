@@ -12,12 +12,13 @@ limiter = Limiter(key_func=get_remote_address)
 
 #@title Model Configuration
 # Model settings for generating responses
+# Gemini REST API expects camelCase keys within generationConfig
 generation_config = {
   "temperature": 1,   # Creativity (0: deterministic, 1: high variety)
-  "top_p": 0.95,       # Focus on high-probability words
-  "top_k": 64,        # Consider top-k words for each step
-  "max_output_tokens": 8192,  # Limit response length
-  "response_mime_type": "text/plain",  # Output as plain text
+  "topP": 0.95,       # Focus on high-probability words
+  "topK": 64,        # Consider top-k words for each step
+  "maxOutputTokens": 8192,  # Limit response length
+  "responseMimeType": "text/plain",  # Output as plain text
 }
 
 safety_settings = [
