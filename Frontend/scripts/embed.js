@@ -649,8 +649,8 @@ em-emoji-picker {
     }
   }
 
-  // Generate a per-page session id and expose globally
-  const SESSION_ID = (Math.random().toString(36).substring(2, 10) + Date.now().toString(36)).toUpperCase();
+  // Generate a per-page session id using UUID and expose globally
+  const SESSION_ID = crypto.randomUUID();
   window.ChatbotSessionId = SESSION_ID;
 
   // -------------------------------

@@ -18,6 +18,7 @@ router = APIRouter()
 @limiter.limit("5/second")
 async def chatbot_response(request: Request):
     try:
+        user_id = None
         payload = await request.json()
         token = payload.get("token")
         if not token:
@@ -31,6 +32,7 @@ async def chatbot_response(request: Request):
             user = await get_user(user_email)
             if user.blackListed:
                 return {"code": 400, "error": "User is blacklisted"}
+            user_id = user.id
             print(f"Token verified for user: {user_email}")
         except jwt.ExpiredSignatureError:
             raise HTTPException(status_code=400, detail="Token expired")
@@ -47,7 +49,7 @@ async def chatbot_response(request: Request):
         except Exception:
         	raise HTTPException(status_code=400, detail="Invalid payload")
         if chatbot_request is not None:
-        	return await generate_result(chatbot_request)
+        	return await generate_result(chatbot_request, user_id)
         else:
             raise HTTPException(status_code=400, detail="Invalid payload")
     except Exception:

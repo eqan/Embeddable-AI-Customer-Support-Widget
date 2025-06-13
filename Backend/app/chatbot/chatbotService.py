@@ -1,6 +1,6 @@
 from chatbot.prompts.load_prompt import load_prompt
 from chatbot.dtos.chatbot import ChatbotRequest
-from config.config import generation_config
+from config.config import generation_config, Session
 from config.settings import Settings
 import requests
 import json
@@ -8,6 +8,9 @@ from chatbot.dtos.chatbot_response import ChatbotResponse
 from pydantic import ValidationError as ResponseValidationError
 from fastapi import HTTPException
 import re
+from chatbot.models.chat import Chat
+from sqlalchemy.exc import SQLAlchemyError
+from datetime import datetime
 
 settings = Settings()
 
@@ -79,7 +82,7 @@ def _extract_json_from_parts(parts: list[dict]) -> str:
                 continue
     raise ValueError("No JSON object found in LLM response parts")
 
-async def generate_result(chatbot_request: ChatbotRequest) -> ChatbotResponse:
+async def generate_result(chatbot_request: ChatbotRequest, user_id: int) -> ChatbotResponse:
     MAX_ATTEMPTS = 3  # how many times to try the LLM in case of schema / transport errors
 
     model_name = settings.model_name or "gemini-2.0-flash"
@@ -135,7 +138,9 @@ async def generate_result(chatbot_request: ChatbotRequest) -> ChatbotResponse:
             json_block = _extract_json_from_parts(parts)
 
             # Will raise JSONDecodeError on schema mismatch which we catch below.
-            return clean_and_parse_json(json_block)
+            response = clean_and_parse_json(json_block)
+            await save_chat_history(chatbot_request, user_id)
+            return response
 
         except (HTTPException, ValueError, json.JSONDecodeError) as err:
             last_error = err
@@ -146,3 +151,58 @@ async def generate_result(chatbot_request: ChatbotRequest) -> ChatbotResponse:
 
     # Should never reach here, but just in case
     raise last_error if last_error else HTTPException(status_code=500, detail="Failed to get valid response from LLM")
+
+async def save_chat_history(chatbot_request: ChatbotRequest, user_id: int):
+    db = Session()
+    try:
+        if await get_chat_history(chatbot_request.session_id):
+            await update_chat_history(chatbot_request)
+            return
+        # Build Chat instance from the incoming request
+        chat = Chat(
+            user_id=user_id,
+            session_id=chatbot_request.session_id,
+            message=chatbot_request.message,
+            response=getattr(chatbot_request, 'response', None),
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow(),
+        )
+
+        db.add(chat)
+        db.commit()
+        db.refresh(chat)
+        return chat
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        db.close()
+
+async def get_chat_history(session_id: str):
+    db = Session()
+    try:
+        # Get chat history for the given session_id
+        chat_history = db.query(Chat).filter(Chat.session_id == session_id).all()
+        return chat_history
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        db.close()
+
+async def update_chat_history(chatbot_request: ChatbotRequest):
+    db = Session()
+    try:
+        chat = db.query(Chat).filter(Chat.session_id == chatbot_request.session_id).first()
+        chat.message = chatbot_request.message
+        chat.response = chatbot_request.response
+        db.commit()
+        db.refresh(chat)
+        return chat
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        db.close()
