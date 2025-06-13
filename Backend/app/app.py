@@ -5,6 +5,7 @@ from config.config import limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
 from config.settings import Settings
+from database import create_tables
 
 settings = Settings()
 
@@ -34,4 +35,5 @@ app.include_router(chatbot_router)
 
 @app.get("/")
 async def root():
+    create_tables()
     return {"message": "Embedded Chatbot API is running!"}
