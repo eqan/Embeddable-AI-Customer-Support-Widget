@@ -3,8 +3,12 @@ from chatbot.dtos.chatbot import ChatbotRequest
 from chatbot.chatbotService import generate_result
 from config.config import limiter
 import jwt
-from config.config import SECRET_KEY, ALGORITHM
+from config.settings import Settings
 from users.usersService import get_user
+
+settings = Settings()
+SECRET_KEY = settings.secret_key
+ALGORITHM = settings.algorithm
 
 router = APIRouter()
 
