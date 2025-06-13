@@ -418,7 +418,31 @@ em-emoji-picker {
     height: 40px;
     width: 40px;
   }
-}`;
+}
+
+/* Auth overlay */
+.chatbot-auth-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100000;
+}
+.chatbot-auth-overlay .auth-modal {
+  background: #ffffff;
+  padding: 30px 35px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.chatbot-auth-overlay .auth-modal h3 {
+  margin-bottom: 25px;
+  font-size: 1.15rem;
+  color: #333;
+}
+`;
 
   // -------------------------------
   // 2. HTML Markup
@@ -519,6 +543,91 @@ em-emoji-picker {
       };
       document.head.appendChild(s);
     });
+  }
+
+  // Google Identity Services loader
+  function loadGoogleAuth() {
+    return new Promise(res => {
+      if (window.google?.accounts?.id) return res();
+      const s = document.createElement('script');
+      s.src = 'https://accounts.google.com/gsi/client';
+      s.onload = res;
+      document.head.appendChild(s);
+    });
+  }
+
+  // Ensure the user is authenticated before using the chatbot
+  function ensureAuthenticated() {
+    return new Promise(async (resolve) => {
+      const stored = localStorage.getItem('chatbotAuthToken');
+      if (stored) return resolve(stored);
+
+      // Build overlay markup
+      const overlay = document.createElement('div');
+      overlay.className = 'chatbot-auth-overlay';
+      overlay.innerHTML = `
+        <div class="auth-modal">
+          <h3>Sign in to continue</h3>
+          <div id="g_id_signin"></div>
+        </div>`;
+      document.body.appendChild(overlay);
+
+      const clientId = window.ChatbotWidgetConfig?.googleClientId || 'YOUR_GOOGLE_CLIENT_ID';
+      const backendBase = window.ChatbotWidgetConfig?.backendBaseUrl || '';
+
+      // Initialize Google identity
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: async (response) => {
+          try {
+            // Exchange credential with backend
+            const res = await fetch(`${backendBase}/google-login`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ code: response.credential })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail || data.message || 'Authentication failed');
+
+            const token = data.token || data.result?.token;
+            if (!token) throw new Error('Token missing in server response');
+
+            localStorage.setItem('chatbotAuthToken', token);
+            overlay.remove();
+            resolve(token);
+          } catch (err) {
+            console.error(err);
+            overlay.querySelector('h3').textContent = err.message || 'Login failed, please try again';
+          }
+        }
+      });
+
+      // Render the sign-in button
+      window.google.accounts.id.renderButton(document.getElementById('g_id_signin'), {
+        theme: 'outline',
+        size: 'large'
+      });
+
+      window.google.accounts.id.prompt();
+    });
+  }
+
+  // Helper: check stored JWT validity
+  function getStoredToken() {
+    const token = localStorage.getItem('chatbotAuthToken');
+    if (!token) return null;
+    try {
+      const payloadBase64 = token.split('.')[1];
+      const payload = JSON.parse(atob(payloadBase64));
+      if (!payload.exp || payload.exp * 1000 < Date.now()) {
+        localStorage.removeItem('chatbotAuthToken');
+        return null;
+      }
+      return token;
+    } catch (e) {
+      localStorage.removeItem('chatbotAuthToken');
+      return null;
+    }
   }
 
   // -------------------------------
@@ -716,7 +825,12 @@ em-emoji-picker {
     chatForm.addEventListener("submit", handleOutgoingMessage);
     sendMessageButton.addEventListener("click", handleOutgoingMessage);
 
-    chatbotToggler.addEventListener("click", () => {
+    chatbotToggler.addEventListener("click", async () => {
+      if (!getStoredToken()) {
+        await loadGoogleAuth();
+        const token = await ensureAuthenticated();
+        if (!token) return; // user cancelled or failed
+      }
       document.body.classList.toggle("show-chatbot");
     });
 
@@ -753,6 +867,7 @@ em-emoji-picker {
     injectStyle();
     injectFontLinks();
     injectMarkup();
+    // Load core libraries (Google auth will be loaded on demand)
     await Promise.all([loadEmojiMart(), loadMarkdownLib(), loadEmailJS()]);
     initLogic();
   }
