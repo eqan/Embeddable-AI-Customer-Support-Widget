@@ -80,6 +80,8 @@ def _extract_json_from_parts(parts: list[dict]) -> str:
     raise ValueError("No JSON object found in LLM response parts")
 
 async def generate_result(chatbot_request: ChatbotRequest) -> ChatbotResponse:
+    MAX_ATTEMPTS = 3  # how many times to try the LLM in case of schema / transport errors
+
     model_name = settings.model_name or "gemini-2.0-flash"
 
     prompt = load_prompt()
@@ -114,20 +116,33 @@ async def generate_result(chatbot_request: ChatbotRequest) -> ChatbotResponse:
 
     headers = {"Content-Type": "application/json"}
 
-    resp = requests.post(endpoint, headers=headers, data=json.dumps(payload), timeout=60)
-    data = resp.json()
-    print("resp: ", data)
-    if not resp.ok:
-        raise HTTPException(status_code=resp.status_code, detail=f"Upstream LLM error: {resp.text}")
+    last_error: Exception | None = None
 
-    try:
-        parts = data["candidates"][0]["content"]["parts"]
-    except (KeyError, IndexError):
-        raise HTTPException(status_code=500, detail="Unexpected response structure from LLM")
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        try:
+            resp = requests.post(endpoint, headers=headers, data=json.dumps(payload), timeout=60)
+            data = resp.json()
+            print(f"[Gemini] Attempt {attempt}: {data}")
 
-    try:
-        json_block = _extract_json_from_parts(parts)
-    except ValueError as e:
-        raise HTTPException(status_code=500, detail=str(e))
+            if not resp.ok:
+                raise HTTPException(status_code=resp.status_code, detail=f"Upstream LLM error: {resp.text}")
 
-    return clean_and_parse_json(json_block)
+            try:
+                parts = data["candidates"][0]["content"]["parts"]
+            except (KeyError, IndexError):
+                raise HTTPException(status_code=500, detail="Unexpected response structure from LLM")
+
+            json_block = _extract_json_from_parts(parts)
+
+            # Will raise JSONDecodeError on schema mismatch which we catch below.
+            return clean_and_parse_json(json_block)
+
+        except (HTTPException, ValueError, json.JSONDecodeError) as err:
+            last_error = err
+            # On the final attempt re-raise, otherwise try again.
+            if attempt == MAX_ATTEMPTS:
+                raise last_error
+            print(f"Retrying Gemini call after error: {err}")
+
+    # Should never reach here, but just in case
+    raise last_error if last_error else HTTPException(status_code=500, detail="Failed to get valid response from LLM")
