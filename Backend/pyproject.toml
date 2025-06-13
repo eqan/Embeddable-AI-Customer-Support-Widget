@@ -1,0 +1,15 @@
+[project]
+name = "uv-fastapi-example"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "aiohttp>=3.12.6",
+    "fastapi[standard]>=0.112.1",
+    "google-generativeai>=0.8.5",
+    "pydantic-settings>=2.9.1",
+    "ruff>=0.11.12",
+    "slowapi>=0.1.9",
+    "uvicorn>=0.30.6",
+]
