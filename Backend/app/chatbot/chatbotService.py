@@ -83,7 +83,7 @@ def _extract_json_from_parts(parts: list[dict]) -> str:
     raise ValueError("No JSON object found in LLM response parts")
 
 async def generate_result(chatbot_request: ChatbotRequest, user_id: int) -> ChatbotResponse:
-    MAX_ATTEMPTS = 3  # how many times to try the LLM in case of schema / transport errors
+    MAX_ATTEMPTS = 5  # how many times to try the LLM in case of schema / transport errors
 
     model_name = settings.model_name or "gemini-2.0-flash"
 
