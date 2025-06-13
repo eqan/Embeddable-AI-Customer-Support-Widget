@@ -705,7 +705,7 @@ em-emoji-picker {
           token: getStoredToken(),
           session_id: SESSION_ID,
           website_url: window.ChatbotWidgetConfig?.hostUrl || "",
-          website_description: window.ChatbotWidgetConfig?.websiteDescription || "",
+          website_description: window.ChatbotWidgetConfig?.hostDescription || "",
         }),
       };
 
