@@ -774,13 +774,6 @@ em-emoji-picker {
                 payload
               );
 
-              // Send auto-confirmation email to user
-              await emailjs.send(
-                window.ChatbotWidgetConfig?.emailJsServiceId || 'YOUR_SERVICE_ID',
-                window.ChatbotWidgetConfig?.emailJsUserTemplateId || 'USER_CONFIRM_TEMPLATE_ID',
-                payload
-              );
-
               // Acknowledge in chat
               messageElement.textContent = `Thank you! Your ticket (${ticketId}) has been created. Our support team will reach out to you at ${payload.email}.`;
               wrapper.remove();
