@@ -630,6 +630,10 @@ em-emoji-picker {
     }
   }
 
+  // Generate a per-page session id and expose globally
+  const SESSION_ID = (Math.random().toString(36).substring(2, 10) + Date.now().toString(36)).toUpperCase();
+  window.ChatbotSessionId = SESSION_ID;
+
   // -------------------------------
   // 4. Main chatbot logic
   // -------------------------------
@@ -642,8 +646,7 @@ em-emoji-picker {
     const chatForm = document.querySelector(".chat-form");
 
     // API setup
-    const API_KEY = "AIzaSyAvtlgLMG9QaPKEsvBomeh84cooqKkst9I";
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+    const API_URL = `${window.ChatbotWidgetConfig?.backendBaseUrl}/chatbot-response`;
 
     const userData = {
       message: null,
@@ -668,32 +671,33 @@ em-emoji-picker {
     const generateBotResponse = async (incomingMessageDiv) => {
       const messageElement = incomingMessageDiv.querySelector(".message-text");
 
+      // Store chat history in the simple {role, content} shape expected by the backend
       chatHistory.push({
         role: "user",
-        parts: [
-          { text: userData.message },
-          ...(userData.file.data ? [{ inline_data: userData.file }] : []),
-        ],
+        content: userData.message,
       });
 
       const requestOptions = {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contents: chatHistory,
+          chat_history: chatHistory,
+          message: userData.message,
+          token: getStoredToken(),
+          session_id: SESSION_ID,
+          website_url: window.ChatbotWidgetConfig?.hostUrl || "",
+          website_description: window.ChatbotWidgetConfig?.websiteDescription || "",
         }),
       };
 
       try {
         const response = await fetch(API_URL, requestOptions);
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error?.message || "Error");
+        if (!response.ok) throw new Error(data.error?.detail || data.error?.message || "Error");
 
-        const apiResponseText = data.candidates[0].content.parts[0].text
-          .replace(/\*\*(.*?)\*\*/g, "$1")
-          .trim();
+        const apiResponseText = data.response.trim();
 
-        if (apiResponseText.toLowerCase() === "calendly") {
+        if (data.is_booking) {
           // Insert Calendly iframe JUST ABOVE this bot message so that it is not treated as a chat bubble
           const iframeWrapper = document.createElement("div");
           iframeWrapper.classList.add("calendly-embed-wrapper");
@@ -705,7 +709,7 @@ em-emoji-picker {
 
           // Update the bot message text to guide the user
           messageElement.textContent = "Select schedule from above";
-        } else if (apiResponseText.toLowerCase() === "human-message") {
+        } else if (data.is_human_handoff) {
           // Show support ticket form
           const wrapper = document.createElement("div");
           wrapper.classList.add("support-form-wrapper");
@@ -773,7 +777,7 @@ em-emoji-picker {
 
         chatHistory.push({
           role: "model",
-          parts: [{ text: apiResponseText }],
+          content: apiResponseText,
         });
       } catch (error) {
         console.error(error);
