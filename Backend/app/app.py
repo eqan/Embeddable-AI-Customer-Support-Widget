@@ -7,6 +7,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
 from config.settings import Settings
 from database import create_tables
+import uvicorn
 
 settings = Settings()
 
@@ -31,5 +32,9 @@ app.include_router(user_router)
 
 @app.get("/")
 async def root():
-    create_tables()
     return {"message": "Embedded Chatbot API is running!"}
+
+
+if __name__ == "__main__":
+   create_tables()
+   uvicorn.run(app, host="0.0.0.0", port=8000)

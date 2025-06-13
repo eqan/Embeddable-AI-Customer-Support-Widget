@@ -50,7 +50,7 @@ engine = create_engine(
     pool_recycle=1800,  # Recycle connections after 30 minutes (prevent stale connections)
     pool_pre_ping=True,  # Verify connection is active before using it
     connect_args={
-        "sslmode": "require",  # Require SSL connection
+        # "sslmode": "require",  # Require SSL connection
         "connect_timeout": 10,  # Connection timeout in seconds
         "keepalives": 1,  # Enable keepalives
         "keepalives_idle": 60,  # Seconds between keepalives
