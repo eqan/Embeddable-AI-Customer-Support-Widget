@@ -7,7 +7,7 @@ import os
 from users.dtos.schemas import UserCreate
 from users.models.user import User
 from sqlalchemy.exc import SQLAlchemyError
-from configs.globalVariables import Session
+from config.config import Session
 from users.models.enums import UserType
 load_dotenv()
 

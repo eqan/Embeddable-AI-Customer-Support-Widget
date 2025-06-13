@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from chatbot.chatbotController import router as chatbot_router
+from users.usersController import router as user_router
 from config.config import limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
@@ -10,12 +11,6 @@ from database import create_tables
 settings = Settings()
 
 app = FastAPI()
-
-def parse_urls():
-    origins = settings.allowed_origins
-    if "," in origins:
-        return [url.strip() for url in origins.split(",")]
-    return [origins.strip()]
 
 # Add the rate limiter middleware to the app
 app.state.limiter = limiter
@@ -32,6 +27,7 @@ app.add_middleware(
 
 
 app.include_router(chatbot_router)
+app.include_router(user_router)
 
 @app.get("/")
 async def root():
