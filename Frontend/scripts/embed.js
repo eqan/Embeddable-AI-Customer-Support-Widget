@@ -820,7 +820,10 @@ em-emoji-picker {
           role: "model",
           content: apiResponseText,
           timestamp: new Date().toISOString(),
+          is_booking: data.is_booking,
+          is_human_handoff: data.is_human_handoff,
         });
+        console.log(chatHistory);
       } catch (error) {
         console.error(error);
         messageElement.innerText = error.message || "Something went wrong";

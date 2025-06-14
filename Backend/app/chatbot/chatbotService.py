@@ -139,7 +139,7 @@ async def generate_result(chatbot_request: ChatbotRequest, user_id: int) -> Chat
 
             # Will raise JSONDecodeError on schema mismatch which we catch below.
             response = clean_and_parse_json(json_block)
-            chatbot_request.chat_history.append({"role": "model", "content": response.response})
+            chatbot_request.chat_history.append({"role": "model", "content": response.response, "is_booking": response.is_booking, "is_human_handoff": response.is_human_handoff})
             await save_chat_history(chatbot_request, user_id)
             return response
 
@@ -191,6 +191,16 @@ async def get_chat_history(session_id: str):
             return chat_history
         else:
             return None
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        db.close()
+
+async def get_all_chats(user_id: int):
+    db = Session()
+    try:
+        chats = db.query(Chat).filter(Chat.user_id == user_id).all()
+        return chats
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:

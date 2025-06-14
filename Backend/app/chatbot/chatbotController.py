@@ -5,6 +5,7 @@ from chatbot.chatbotService import generate_result
 from config.config import limiter
 from users.usersService import verify_jwt_token_for_chatbot
 from utils.security import enforce_payload_size
+from chatbot.chatbotService import get_all_chats
 
 router = APIRouter()
 
@@ -29,3 +30,10 @@ async def chatbot_response(request: Request):
             raise HTTPException(status_code=400, detail="Invalid payload")
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid payload")
+    
+@router.get("/all-chats")
+async def get_all_chats_endpoint(request: Request):
+    user_id = await verify_jwt_token_for_chatbot(request)
+    if user_id is None:
+        raise HTTPException(status_code=400, detail="User is blacklisted")
+    return await get_all_chats(user_id)
