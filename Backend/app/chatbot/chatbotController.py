@@ -1,16 +1,18 @@
 from fastapi import APIRouter, Request, HTTPException, Depends
 from chatbot.dtos.chatbot import ChatbotRequest
 from chatbot.dtos.chatbot_response import ChatbotResponse
-from chatbot.chatbotService import generate_result
+from chatbot.chatbotService import ChatbotService
 from config.config import limiter
 from users.usersService import UsersService
 from utils.security import enforce_payload_size
-from chatbot.chatbotService import get_all_chats
 
 router = APIRouter()
 
 # Global UsersService instance
 users_service = UsersService()
+
+# Global ChatbotService instance
+chatbot_service = ChatbotService()
 
 
 @router.post("/chatbot-response", response_model=ChatbotResponse, dependencies=[Depends(enforce_payload_size)])
@@ -28,7 +30,7 @@ async def chatbot_response(request: Request):
         except Exception:
         	raise HTTPException(status_code=400, detail="Invalid payload")
         if chatbot_request is not None:
-        	return await generate_result(chatbot_request, user_id)
+        	return await chatbot_service.generate_result(chatbot_request, user_id)
         else:
             raise HTTPException(status_code=400, detail="Invalid payload")
     except Exception:
@@ -39,4 +41,4 @@ async def get_all_chats_endpoint(request: Request):
     user_id = await users_service.verify_jwt_token_for_chatbot(request)
     if user_id is None:
         raise HTTPException(status_code=400, detail="User is blacklisted")
-    return await get_all_chats(user_id)
+    return await chatbot_service.get_all_chats(user_id)
