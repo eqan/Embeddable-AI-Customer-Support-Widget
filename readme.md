@@ -69,7 +69,7 @@ This document details the completed work for the Embeddable AI Customer Support 
 
 **Demo Screenshots:**
 
-| ![Screenshot 1](/Users/eqanahmad/Desktop/Support-AI-Widget/image/main/1749929072956.png) | ![Screenshot 2](/Users/eqanahmad/Desktop/Support-AI-Widget/image/main/1749929274951.png) | ![Screenshot 3](/Users/eqanahmad/Desktop/Support-AI-Widget/image/main/1749929286416.png) | ![Screenshot 4](/Users/eqanahmad/Desktop/Support-AI-Widget/image/main/1749929297689.png) |
+| ![Screenshot 1](image/main/1749929072956.png) | ![Screenshot 2](image/main/1749929274951.png) | ![Screenshot 3](image/main/1749929286416.png) | ![Screenshot 4](image/main/1749929297689.png) |
 | :------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------: |
 
 **Implementation Details:**
@@ -95,7 +95,7 @@ This document details the completed work for the Embeddable AI Customer Support 
 
 **Demo Screenshots:**
 
-| ![Screenshot<span class=](/Users/eqanahmad/Desktop/Support-AI-Widget/image/main/1749929315036.png)&nbsp; Forum | ![Screenshot<span class=](/Users/eqanahmad/Desktop/Support-AI-Widget/image/main/1749929328159.png)&nbsp; Email |
+| ![Screenshot<span class=](image/main/1749929315036.png)&nbsp; Forum | ![Screenshot<span class=](image/main/1749929328159.png)&nbsp; Email |
 | :----------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------: |
 
 **Implementation Details:**
