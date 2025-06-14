@@ -8,6 +8,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
 from config.settings import Settings
 from database import create_tables
+from stats.scheduler import scheduler
 import uvicorn
 
 settings = Settings()
@@ -36,6 +37,18 @@ app.include_router(stats_router)
 async def root():
     return {"message": "Embedded Chatbot API is running!"}
 
+# ---------------------------------------------------------------------------
+# Scheduler lifecycle hooks
+# ---------------------------------------------------------------------------
+
+@app.on_event("startup")
+async def _start_scheduler():
+    scheduler.start()
+
+
+@app.on_event("shutdown")
+async def _shutdown_scheduler():
+    scheduler.shutdown()
 
 if __name__ == "__main__":
    create_tables()
