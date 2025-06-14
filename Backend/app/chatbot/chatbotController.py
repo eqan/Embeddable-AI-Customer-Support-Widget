@@ -1,14 +1,15 @@
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request, HTTPException, Depends
 from chatbot.dtos.chatbot import ChatbotRequest
 from chatbot.dtos.chatbot_response import ChatbotResponse
 from chatbot.chatbotService import generate_result
 from config.config import limiter
 from users.usersService import verify_jwt_token_for_chatbot
+from utils.security import enforce_payload_size
 
 router = APIRouter()
 
 
-@router.post("/chatbot-response", response_model=ChatbotResponse)
+@router.post("/chatbot-response", response_model=ChatbotResponse, dependencies=[Depends(enforce_payload_size)])
 @limiter.limit("5/second")
 async def chatbot_response(request: Request):
     try:
