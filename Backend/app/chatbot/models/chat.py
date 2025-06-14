@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
 from base import Base
+from datetime import datetime
 
 class Chat(Base):
     __tablename__ = "chats"
@@ -9,8 +10,9 @@ class Chat(Base):
     session_id = Column(String, nullable=False)
     message = Column(Text, nullable=False)
     chat_history = Column(Text, nullable=False)
-    created_at = Column(DateTime, nullable=False)
-    updated_at = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow,
+                        onupdate=datetime.utcnow)
 
     def to_dict(self):
         return {

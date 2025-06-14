@@ -20,9 +20,13 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     op.alter_column('chats', 'response', new_column_name='chat_history')
+    op.alter_column('chats', 'created_at', new_column_name='created_at', nullable=False, server_default=sa.text('CURRENT_TIMESTAMP'))
+    op.alter_column('chats', 'updated_at', new_column_name='updated_at', nullable=False, server_default=sa.text('CURRENT_TIMESTAMP'))
     pass
 
 
 def downgrade() -> None:
     op.alter_column('chats', 'chat_history', new_column_name='response')
+    op.alter_column('chats', 'created_at', new_column_name='created_at', nullable=False)
+    op.alter_column('chats', 'updated_at', new_column_name='updated_at', nullable=False)
     pass
