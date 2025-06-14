@@ -85,6 +85,9 @@ body.show-chatbot #chatbot-toggler span:last-child{
   pointer-events: none;
   box-shadow: 0 0 128px rgba(0, 0, 0, 0.1), 0 32px 64px -48px rgba(0, 0, 0, 0.5);
   transition: all 0.1s ease;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100% - 120px);
 }
 
 body.show-chatbot .chatbot-popup {
@@ -145,8 +148,7 @@ body.show-chatbot .chatbot-popup {
   padding: 25px 22px;
   display: flex;
   gap: 20px;
-  height: 460px;
-  margin-bottom: 82px;
+  flex: 1 1 auto;
   overflow-y: auto;
   flex-direction: column;
   scrollbar-width: thin;
@@ -242,8 +244,7 @@ body.show-chatbot .chatbot-popup {
 }
 
 .chat-footer {
-  position: absolute;
-  bottom: 0;
+  position: relative;
   width: 100%;
   background: white;
   padding: 15px 22px 20px;
@@ -253,7 +254,7 @@ body.show-chatbot .chatbot-popup {
   display: flex;
   align-items: center;
   background: white;
-  border-radius: 32px;
+  border-radius: 0;
   outline: 1px solid ${colors.accent};
 }
 
@@ -750,7 +751,7 @@ em-emoji-picker {
           const iframeWrapper = document.createElement("div");
           iframeWrapper.classList.add("calendly-embed-wrapper");
           iframeWrapper.innerHTML =
-            '<iframe src="https://calendly.com/eqan-ahmad123/customer-agent" style="width: 100%; min-width: 400px; height: 600px; border:none;" frameborder="0"></iframe>';
+            `<iframe src="${window.ChatbotWidgetConfig?.calendlyUrl}" style="width: 100%; min-width: 400px; height: 600px; border:none;" frameborder="0"></iframe>`;
 
           // Place iframe immediately before the incoming bot message element
           chatBody.insertBefore(iframeWrapper, incomingMessageDiv);
