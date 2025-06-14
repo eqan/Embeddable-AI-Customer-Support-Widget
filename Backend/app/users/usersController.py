@@ -17,4 +17,3 @@ async def google_login(payload: AuthCodePayload):
 async def verify_token_route(user_payload: dict = Depends(verify_jwt_token)):
     # If the token is valid, this route will return the user payload
     return {"status": True, "user": user_payload}
-
