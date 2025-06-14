@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     secret_key: str = os.getenv("SECRET_KEY")
     algorithm: str = os.getenv("ALGORITHM")
     access_token_expire_days: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_DAYS"))
+    sentry_dsn: str = os.getenv("SENTRY_DSN")
     
     model_config = SettingsConfigDict(
         env_file=os.path.join(os.path.dirname(__file__), "../../.env"),

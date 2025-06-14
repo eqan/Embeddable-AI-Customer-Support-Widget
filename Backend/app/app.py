@@ -10,10 +10,19 @@ from config.settings import Settings
 from database import create_tables
 from stats.scheduler import scheduler
 import uvicorn
+import sentry_sdk
 
 settings = Settings()
 
 app = FastAPI()
+
+
+sentry_sdk.init(
+    dsn=settings.sentry_dsn,
+    # Add data like request headers and IP for users,
+    # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+    send_default_pii=True,
+)
 
 # Add the rate limiter middleware to the app
 app.state.limiter = limiter
@@ -49,6 +58,10 @@ async def _start_scheduler():
 @app.on_event("shutdown")
 async def _shutdown_scheduler():
     scheduler.shutdown()
+
+@app.get("/sentry-debug")
+async def trigger_error():
+    division_by_zero = 1 / 0
 
 if __name__ == "__main__":
    create_tables()
