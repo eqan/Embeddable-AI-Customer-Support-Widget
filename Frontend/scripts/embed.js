@@ -694,6 +694,7 @@ em-emoji-picker {
       chatHistory.push({
         role: "user",
         content: userData.message,
+        timestamp: new Date().toISOString(),
       });
 
       const requestOptions = {
@@ -790,6 +791,7 @@ em-emoji-picker {
         chatHistory.push({
           role: "model",
           content: apiResponseText,
+          timestamp: new Date().toISOString(),
         });
       } catch (error) {
         console.error(error);
