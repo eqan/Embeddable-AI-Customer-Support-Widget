@@ -61,7 +61,7 @@ This document details the completed work for the Embeddable AI Customer Support 
 **Requirements Met:**
 
 - **Connect to Google Calendar API to pull real-time availability:** Fulfilled, but with a strategic alternative. Instead of directly integrating with Google Calendar API, Calendly's iFrame solution was chosen, which inherently handles real-time availability.
-- **Display available time slots to users in a user-friendly format:** Fulfilled by Calendly's iFrame, which provides a visual calendar for selecting days and times.
+- **Display available time slots to users in a user-friendly format:** Fulfilled by Calendly's iFrame, which provides a visual calendar for selecting days
 - **Allow users to book appointments directly through the widget:** Fulfilled by Calendly's iFrame integration
 - **Create calendar events with Google Meet links automatically:** Fulfilled by Calendly's functionality.
 - **Send confirmation emails with calendar invites:** Fulfilled by Calendly's functionality
@@ -70,12 +70,13 @@ This document details the completed work for the Embeddable AI Customer Support 
 **Demo Screenshots:**
 
 <!-- BEGIN COLLAGE 1 -->
+
 <table>
   <tr>
-    <td><img src="image/main/1749929072956.png" alt="1749929072956"></td>
-    <td><img src="image/main/1749929274951.png" alt="1749929274951"></td>
-    <td><img src="image/main/1749929286416.png" alt="1749929286416"></td>
-    <td><img src="image/main/1749929297689.png" alt="1749929297689"></td>
+    <td><img src="image/main/1749929072956.png" alt="1749929072956" style="width: 100%; height: 50%;"></td>
+    <td><img src="image/main/1749929274951.png" alt="1749929274951" style="width: 100%; height: 50%;"></td>
+    <td><img src="image/main/1749929286416.png" alt="1749929286416" style="width: 100%; height: 50%;"></td>
+    <td><img src="image/main/1749929297689.png" alt="1749929297689" style="width: 100%; height: 50%;"></td>
   </tr>
 </table>
 <!-- END COLLAGE 1 -->
@@ -104,10 +105,11 @@ This document details the completed work for the Embeddable AI Customer Support 
 **Demo Screenshots:**
 
 <!-- BEGIN COLLAGE 2 -->
+
 <table>
   <tr>
-    <td><img src="image/main/1749929315036.png" alt="1749929315036"></td>
-    <td><img src="image/main/1749929328159.png" alt="1749929328159"></td>
+    <td><img src="image/main/1749929315036.png" alt="1749929315036" style="width: 100%; height: 50%;"></td>
+    <td><img src="image/main/1749929328159.png" alt="1749929328159" style="width: 100%; height: 50%;"></td>
   </tr>
 </table>
 <!-- END COLLAGE 2 -->
