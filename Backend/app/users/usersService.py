@@ -59,6 +59,32 @@ async def exchange_auth_code_for_token(auth_code: str):
         print("This is the error", e)
         raise HTTPException(status_code=500, detail=str(e))
 
+async def verify_jwt_token_for_chatbot(request: Request):
+    user_id = None
+    payload = await request.json()
+    token = payload.get("token")
+    if not token:
+        raise HTTPException(status_code=400, detail="Missing authentication token")
+        
+    try:
+        # Verify JWT token
+        extracted_payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        # Store user info for later use if needed
+        user_email = extracted_payload.get("email")
+        user = await get_user(user_email)
+        if user.blackListed:
+            return None
+        user_id = user.id
+        print(f"Token verified for user: {user_email}")
+        return user_id
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=400, detail="Token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    except Exception:
+        raise HTTPException(status_code=400, detail="Token verification failed")
+    
+
 async def verify_jwt_token(request: Request):
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
