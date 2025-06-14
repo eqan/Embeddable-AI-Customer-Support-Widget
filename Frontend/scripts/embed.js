@@ -479,13 +479,40 @@ em-emoji-picker {
     </div>`;
 
   // -------------------------------
+  // 2. Namespace / Scoping helpers
+  // -------------------------------
+  const WIDGET_ROOT_ID = "sa-widget"; // Stable id for the widget wrapper
+
+  // Prefix selectors with the widget root so styles don\'t leak.
+  function scopeCss(cssText) {
+    // Rewrite the few selectors that target <body> class toggles
+    cssText = cssText.replace(/body\.show-chatbot/g, `#${WIDGET_ROOT_ID}.show`);
+    cssText = cssText.replace(/body\.show-emoji-picker/g, `#${WIDGET_ROOT_ID}.show-emoji-picker`);
+
+    // Generic prefixing of rule selectors (skip @ rules).
+    return cssText.replace(/(^|\})\s*([^@}{][^{]+)/g, (match, brace, selectors) => {
+      if (selectors.trim().startsWith("@")) return match; // keep @media / keyframes intact
+      const scoped = selectors
+        .split(",")
+        .map(s => {
+          s = s.trim();
+          // Don\'t double-prefix if already scoped
+          if (s.startsWith(`#${WIDGET_ROOT_ID}`)) return s;
+          return `#${WIDGET_ROOT_ID} ${s}`;
+        })
+        .join(", ");
+      return `${brace} ${scoped}`;
+    });
+  }
+
+  // -------------------------------
   // 3. Helper injection functions
   // -------------------------------
   function injectStyle() {
     if (document.getElementById("embedded-chatbot-style")) return;
     const style = document.createElement("style");
     style.id = "embedded-chatbot-style";
-    style.textContent = css;
+    style.textContent = scopeCss(css);
     document.head.appendChild(style);
   }
 
@@ -500,9 +527,9 @@ em-emoji-picker {
   }
 
   function injectMarkup() {
-    if (document.getElementById("chatbot-toggler")) return; // Already injected
+    if (document.getElementById(WIDGET_ROOT_ID)) return; // Already injected
     const container = document.createElement("div");
-    container.id = "embedded-chatbot-container";
+    container.id = WIDGET_ROOT_ID;
     container.innerHTML = markup;
     document.body.appendChild(container);
   }
@@ -657,12 +684,13 @@ em-emoji-picker {
   // 4. Main chatbot logic
   // -------------------------------
   function initLogic() {
-    const chatBody = document.querySelector(".chat-body");
-    const messageInput = document.querySelector(".message-input");
-    const sendMessageButton = document.querySelector("#send-message");
-    const chatbotToggler = document.querySelector("#chatbot-toggler");
-    const closeChatbot = document.querySelector("#close-chatbot");
-    const chatForm = document.querySelector(".chat-form");
+    const root = document.getElementById(WIDGET_ROOT_ID);
+    const chatBody = root.querySelector(".chat-body");
+    const messageInput = root.querySelector(".message-input");
+    const sendMessageButton = root.querySelector("#send-message");
+    const chatbotToggler = root.querySelector("#chatbot-toggler");
+    const closeChatbot = root.querySelector("#close-chatbot");
+    const chatForm = root.querySelector(".chat-form");
 
     // API setup
     const API_URL = `${window.ChatbotWidgetConfig?.backendBaseUrl}/chatbot-response`;
@@ -844,18 +872,16 @@ em-emoji-picker {
     sendMessageButton.addEventListener("click", handleOutgoingMessage);
 
     chatbotToggler.addEventListener("click", async () => {
-      console.log("Chatbot toggler clicked");
       if (!getStoredToken()) {
         await loadGoogleAuth();
       }
       const token = await ensureAuthenticated();
       if (!token) return; // user cancelled or failed
-      console.log("Token:", token);
-      document.body.classList.toggle("show-chatbot");
+      root.classList.toggle("show");
     });
 
     closeChatbot.addEventListener("click", () => {
-      document.body.classList.remove("show-chatbot");
+      root.classList.remove("show");
     });
 
     // Emoji picker
@@ -870,14 +896,14 @@ em-emoji-picker {
       },
       onClickOutside: (e) => {
         if (e.target.id === "emoji-picker") {
-          document.body.classList.toggle("show-emoji-picker");
+          root.classList.toggle("show-emoji-picker");
         } else {
-          document.body.classList.remove("show-emoji-picker");
+          root.classList.remove("show-emoji-picker");
         }
       },
     });
 
-    document.querySelector(".chat-form").appendChild(picker);
+    root.querySelector(".chat-form").appendChild(picker);
   }
 
   // -------------------------------
