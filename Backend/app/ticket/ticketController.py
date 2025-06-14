@@ -46,4 +46,9 @@ async def get_all_tickets_by_user_id(
     user_id = await users_service.verify_jwt_token_for_chatbot(request)
     if user_id is None:
         raise HTTPException(status_code=400, detail="User is blacklisted")
+    """_summary_
+
+    Returns:
+        _type_: _description_
+    """
     return ticket_service.get_all_tickets_by_user_id(user_id)
