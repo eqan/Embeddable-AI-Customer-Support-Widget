@@ -69,8 +69,16 @@ This document details the completed work for the Embeddable AI Customer Support 
 
 **Demo Screenshots:**
 
-| ![Screenshot 1](image/main/1749929072956.png) | ![Screenshot 2](image/main/1749929274951.png) | ![Screenshot 3](image/main/1749929286416.png) | ![Screenshot 4](image/main/1749929297689.png) |
-| :------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------: |
+<!-- BEGIN COLLAGE 1 -->
+<table>
+  <tr>
+    <td><img src="image/main/1749929072956.png" alt="1749929072956"></td>
+    <td><img src="image/main/1749929274951.png" alt="1749929274951"></td>
+    <td><img src="image/main/1749929286416.png" alt="1749929286416"></td>
+    <td><img src="image/main/1749929297689.png" alt="1749929297689"></td>
+  </tr>
+</table>
+<!-- END COLLAGE 1 -->
 
 **Implementation Details:**
 
@@ -95,8 +103,14 @@ This document details the completed work for the Embeddable AI Customer Support 
 
 **Demo Screenshots:**
 
-| ![Screenshot<span class=](image/main/1749929315036.png)&nbsp; Forum | ![Screenshot<span class=](image/main/1749929328159.png)&nbsp; Email |
-| :----------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------: |
+<!-- BEGIN COLLAGE 2 -->
+<table>
+  <tr>
+    <td><img src="image/main/1749929315036.png" alt="1749929315036"></td>
+    <td><img src="image/main/1749929328159.png" alt="1749929328159"></td>
+  </tr>
+</table>
+<!-- END COLLAGE 2 -->
 
 **Implementation Details:**
 
