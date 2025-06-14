@@ -70,7 +70,7 @@ This document details the completed work for the Embeddable AI Customer Support 
 **Demo Screenshots:**
 
 | ![Screenshot 1](/Users/eqanahmad/Desktop/Support-AI-Widget/image/main/1749929072956.png) | ![Screenshot 2](/Users/eqanahmad/Desktop/Support-AI-Widget/image/main/1749929274951.png) | ![Screenshot 3](/Users/eqanahmad/Desktop/Support-AI-Widget/image/main/1749929286416.png) | ![Screenshot 4](/Users/eqanahmad/Desktop/Support-AI-Widget/image/main/1749929297689.png) |
-| :--------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------: |
+| :------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------: |
 
 **Implementation Details:**
 
@@ -96,7 +96,7 @@ This document details the completed work for the Embeddable AI Customer Support 
 **Demo Screenshots:**
 
 | ![Screenshot<span class=](/Users/eqanahmad/Desktop/Support-AI-Widget/image/main/1749929315036.png)&nbsp; Forum | ![Screenshot<span class=](/Users/eqanahmad/Desktop/Support-AI-Widget/image/main/1749929328159.png)&nbsp; Email |
-| :------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------: |
+| :----------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------: |
 
 **Implementation Details:**
 
@@ -209,3 +209,7 @@ This document details the completed work for the Embeddable AI Customer Support 
 5. **How will you handle different timezones for calendar bookings?**
 
    - Handled inherently by Calendly's built-in functionality
+
+## Future Considerations
+
+Shifting Calendly and Emai notification systems to backend via APIs for enhanced security, but need to find a way on how to automtically get calendly API key and email service credentials from the user. So we can stop people from getting their hands on even public API's and URLs.
