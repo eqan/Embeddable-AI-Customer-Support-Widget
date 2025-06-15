@@ -120,7 +120,7 @@
 <p><strong>Send auto-confirmation email to the user:</strong> Fulfilled using EmailJS.</p>
 </li>
 <li>
-<p><strong>Generate a support ticket ID for tracking:</strong> Fulfilled. A support ticket ID is generated for tracking, as shown in the email example.</p>
+<p><strong>Generate a support ticket ID for tracking:</strong> Fulfilled. A support ticket ID is generated for tracking, as shown in the email example and all support tickets along with their status(Open|Closed|Inprogress) saved in the database for tracking.</p>
 </li>
 </ul>
 <p><strong>Demo Screenshots:</strong></p>
@@ -141,12 +141,18 @@
 <li><strong>Log all conversations to Supabase|Postgres database:</strong> Fulfilled. All user sessions and messages are stored in the backend databases.</li>
 <li><strong>Track user sessions, messages, and actions taken:</strong> Fulfilled. Stored sessions include information regarding bookings and human handoff forms.</li>
 <li><strong>Store metadata like timestamps, user info, conversation outcomes:</strong> Fulfilled. This information is part of the stored sessions.</li>
-<li><strong>Basic analytics on conversation volume and success rates:</strong> Fulfilled. Information is processed daily via a cron job to get the volume of conversations and success rates.</li>
+<li><strong>Basic analytics on conversation volume and success rates:</strong> Fulfilled. Information is processed daily via a cron job to get the volume of conversations and success rates and furthermore using sentry to track all API bugs, errors etc in real time</li>
 </ul>
 <p><strong>Demo Screenshots:</strong></p>
+<table>
+  <tbody><tr>
+    <td><img src="image/readme/1749976763812.png" alt="1749976763812" style="width: 100%; height: 50%;"></td>
+    <td><img src="image/readme/1749976821435.png" alt="1749976821435" style="width: 100%; height: 50%;"></td>
+  </tr>
+</tbody></table>
 <p><strong>Implementation Details:</strong></p>
 <ul>
-<li>PostgreSQL is the chosen database for logging interactions in local development but Supabase provides instance of PostgreSQL in production so wouldn't be an issue.</li>
+<li>PostgreSQL is the chosen database for logging interactions in local development but Supabase provides instance of PostgreSQL in production so wouldn't be an issue. Furthermore Sentry is chosen for error and issues logging of the APIs.</li>
 </ul>
 <h2 id="technical-stack-requirements">Technical Stack Requirements </h2>
 <p><strong>Backend:</strong></p>
@@ -155,7 +161,7 @@
 <li><strong>LLM:</strong> Google Gemini Flash 2.0 (via OpenRouter API, with Google Search Support enabled).</li>
 <li><strong>APIs:</strong> Email service (EmailJS[Used in Frontend]), Calendly (instead of Google Calendar API).</li>
 <li><strong>Framework:</strong> FAST API with Python.</li>
-<li><strong>Other:</strong> Alembic, Sentry, Rate Limiter, Google Authentication, Ruff, Pydantic, SQL Alchemy.</li>
+<li><strong>Other:</strong> Alembic(Data Migrations), Sentry(Issues Logging), Rate Limiter, Google Authentication, Ruff(Python Linter), Pydantic(Typing Within Python), SQL Alchemy(ORM).</li>
 </ul>
 <p><strong>Frontend:</strong></p>
 <ul>
@@ -167,14 +173,14 @@
 <h2 id="architecture-considerations-for-future">Architecture Considerations for Future </h2>
 <ul>
 <li><strong>Appointment Rescheduling:</strong> Already handled by Calendly, which offers API support for this.</li>
-<li><strong>Internal Database Queries:</strong> Easily attachable using SQL Alchemy ORM with Alembic migrations.</li>
+<li><strong>Internal Database Queries:</strong> Easily attachable using SQL Alchemy ORM with Alembic migrations or via API calls.</li>
 <li><strong>Live Agent Handoff:</strong> A flag or quick email notification to a human agent, with a real-time websocket connection if availability is confirmed, can facilitate seamless transition.</li>
-<li><strong>Multi-language Support:</strong> While not explicitly built, the modular architecture would likely support this expansion.</li>
-<li><strong>Advanced Analytics:</strong> Basic analytics are implemented, with potential for improvement on the analytics module or integration with tools like Google Analytics.</li>
+<li><strong>Multi-language Support:</strong> Easily done with the prompt.</li>
+<li><strong>Advanced Analytics:</strong> Basic analytics are implemented, with potential for improvement on the analytics module or integration with tools like Google Analytics. Sentry  also used for advanced issue related analytics.</li>
 </ul>
 <p><strong>Overall Architecture:</strong></p>
 <ul>
-<li>The backend infrastructure is built on a "screaming architecture," emphasizing modularity and ease of modification.</li>
+<li>The backend infrastructure is built on a "screaming architecture," emphasizing modularity and ease of modification. Furthermore OOP(Object Oriented Programming) is being utilized for service modules which can allow us for easy import of modules in other services and Functional Programming for REST APIs.</li>
 <li>The chatbot is designed to be highly modular, allowing most changes to be handled by adjusting frontend parameters, with the backend automatically adapting.</li>
 </ul>
 <h2 id="deliverables">Deliverables </h2>
@@ -193,22 +199,37 @@
 <li>RESTful API endpoints for chat, calendar, and support requests: Implemented with FAST API.</li>
 <li>Google Calendar integration for availability and booking: Fulfilled through Calendly integration</li>
 <li>Email notification system for support requests: Implemented using EmailJS.</li>
-<li>Database operations for logging interactions: Handled with Supabase (Postgres).</li>
+<li>Database operations for logging interactions: Handled with Postgres and Sentry.</li>
 </ul>
 </li>
 <li>
 <p><strong>Database Setup:</strong></p>
 <ul>
-<li>PostgreSQL Native project with proper tables for conversations, bookings, and support requests: Implemented</li>
-<li>Vector embeddings setup for AI context: Not explicitly required or implemented based on the chosen AI context approach (Google Search with Gemini 2.0).</li>
+<li>PostgreSQL Native project with proper tables for conversations, bookings, and support requests: Implemented except for bookings as Calendly is handling it automatically.</li>
+<li>Vector embeddings setup for AI context: Not explicitly required or implemented based on the chosen AI context approach (Google Search with Gemini 2.0) which retrieves information automatically based on public information of the company(Website etc).</li>
 </ul>
 </li>
 <li>
 <p><strong>Documentation:</strong></p>
 <ul>
-<li>Integration guide: Provided in the <code>script</code> tag example.</li>
-<li>API documentation: Provided by FAST API[Use the FAST API interactive docs] and also in the commented code.</li>
-<li>Setup instructions for Google Calendar and email services: Covered by the Calendly URL and EmailJS credentials in the configuration.</li>
+<li>
+<p>Integration guide: Provided in the <code>script</code> tag example.</p>
+</li>
+<li>
+<p>API documentation: Provided by FAST API[Use the FAST API interactive docs] and also in the commented code.</p>
+<table>
+  <tbody><tr>
+    <td><img src="image/readme/1749978348993.png" alt="Image 1" style="width: 100%; height: 50%;"></td>
+  </tr>
+  <tr>
+    <td><img src="image/readme/1749977650402.png" alt="Image 2" style="width: 100%; height: 50%;"></td>
+    <td><img src="image/readme/1749977669087.png" alt="Image 3" style="width: 100%; height: 50%;"></td>
+  </tr>
+</tbody></table>
+</li>
+<li>
+<p>Setup instructions for Google Calendar and email services: Covered by the Calendly URL and EmailJS credentials in the configuration.</p>
+</li>
 </ul>
 </li>
 </ul>

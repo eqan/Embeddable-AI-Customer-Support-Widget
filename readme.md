@@ -130,9 +130,12 @@ This document details the completed work for the Embeddable AI Customer Support 
 
 **Demo Screenshots:**
 
-![1749976763812](image/readme/1749976763812.png)
-
-![1749976821435](image/readme/1749976821435.png)
+<table>
+  <tr>
+    <td><img src="image/readme/1749976763812.png" alt="1749976763812" style="width: 100%; height: 50%;"></td>
+    <td><img src="image/readme/1749976821435.png" alt="1749976821435" style="width: 100%; height: 50%;"></td>
+  </tr>
+</table>
 
 **Implementation Details:**
 
@@ -190,16 +193,22 @@ This document details the completed work for the Embeddable AI Customer Support 
   - Integration guide: Provided in the `script` tag example.
   - API documentation: Provided by FAST API[Use the FAST API interactive docs] and also in the commented code.
 
-    ![1749978348993](image/readme/1749978348993.png)![1749977650402](image/readme/1749977650402.png)
-
-    ![1749977669087](image/readme/1749977669087.png)
+    <table>
+      <tr>
+        <td><img src="image/readme/1749978348993.png" alt="Image 1" style="width: 100%; height: 50%;"></td>
+      </tr>
+      <tr>
+        <td><img src="image/readme/1749977650402.png" alt="Image 2" style="width: 100%; height: 50%;"></td>
+        <td><img src="image/readme/1749977669087.png" alt="Image 3" style="width: 100%; height: 50%;"></td>
+      </tr>
+    </table>
   - Setup instructions for Google Calendar and email services: Covered by the Calendly URL and EmailJS credentials in the configuration.
 
 ## Evaluation Criteria
 
 - **Technical Implementation (40%):**
 
-  - Clean, well-organized code: Implied by the "screaming architecture" and choice of frameworks (FAST API, SQL Alchemy).
+  - Clean, well-organized code: Implied by the "screaming architecture", OOP for services + Functional Programming and choice of frameworks (FAST API, SQL Alchemy).
   - Proper error handling: Sentry is installed in the backend for real-time system failure updates and bug tracking.
   - Security best practices: Google OAuth, Rate limiting, CORS configuration, token-based authentication for requests, and payload limits are implemented.
   - Widget integration works smoothly: Confirmed by the description of the embeddable and customizable widget
@@ -207,7 +216,7 @@ This document details the completed work for the Embeddable AI Customer Support 
 
   - Google Calendar integration works correctly: Fulfilled via Calendly.
   - Human handoff form and email system functions properly: Fulfilled using EmailJS and the in-built issue tracking.
-  - All interactions are logged to database: Fulfilled with PostgreSQL
+  - All interactions are logged to database: Fulfilled with PostgreSQL and Sentry.
   - AI provides relevant responses: Fulfilled by Gemini 2.0 with Google Search capabilities.
 - **User Experience (20%):**
 
