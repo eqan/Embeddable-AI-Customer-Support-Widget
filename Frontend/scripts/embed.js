@@ -513,7 +513,31 @@ em-emoji-picker {
     if (document.getElementById("embedded-chatbot-style")) return;
     const style = document.createElement("style");
     style.id = "embedded-chatbot-style";
-    style.textContent = scopeCss(css);
+    style.textContent = `
+    ${scopeCss(css)}
+      @media screen and (max-width: 600px) {
+        #${WIDGET_ROOT_ID} .chatbot-popup {
+          position: fixed !important;
+          width: 100% !important;
+          height: 100% !important;
+          max-height: 100% !important;
+          right: 0 !important;
+          bottom: 0 !important;
+          border-radius: 0 !important;
+          margin: 0 !important;
+        }
+        
+        #${WIDGET_ROOT_ID} .chat-body {
+          height: calc(100% - 120px) !important;
+        }
+        
+        #${WIDGET_ROOT_ID} .chat-footer {
+          position: fixed !important;
+          bottom: 0 !important;
+          width: 100% !important;
+        }
+      }
+    `;
     document.head.appendChild(style);
   }
 
