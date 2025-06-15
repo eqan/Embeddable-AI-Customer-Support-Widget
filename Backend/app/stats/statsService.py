@@ -8,11 +8,12 @@ import ast
 
 class StatsService:
     """Service providing conversation statistics for a given user."""
+    def __init__(self):
+        self.db = Session()
 
     async def generate_stats(self, user_id: int):
-        db = Session()
         try:
-            chats = db.query(Chat).filter(Chat.user_id == user_id).all()
+            chats = self.db.query(Chat).filter(Chat.user_id == user_id).all()
             stats = ConversationStats(user_id=user_id)
             stats.conversations = len(chats)
 
@@ -42,7 +43,7 @@ class StatsService:
             print(stats)
 
             # Add or update operation
-            existing_stats = db.query(ConversationStats).filter(ConversationStats.user_id == user_id).first()
+            existing_stats = self.db.query(ConversationStats).filter(ConversationStats.user_id == user_id).first()
             if existing_stats:
                 existing_stats.conversations = stats.conversations
                 existing_stats.messages = stats.messages
@@ -53,19 +54,18 @@ class StatsService:
                 existing_stats.avg_messages_per_conversation = stats.avg_messages_per_conversation
                 existing_stats.updated_at = datetime.now()
             else:
-                db.add(stats)
-            db.commit()
+                self.db.add(stats)
+            self.db.commit()
         except SQLAlchemyError as e:
-            db.rollback()
+            self.db.rollback()
             raise HTTPException(status_code=500, detail=str(e))
         finally:
-            db.close()
+            self.db.close()
             return stats
 
     async def get_stats(self, user_id: int):
-        db = Session()
         try:
-            stats = db.query(ConversationStats).filter(ConversationStats.user_id == user_id).first()
+            stats = self.db.query(ConversationStats).filter(ConversationStats.user_id == user_id).first()
             return stats
         except SQLAlchemyError as e:
             raise HTTPException(status_code=500, detail=str(e))

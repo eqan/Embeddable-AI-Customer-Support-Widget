@@ -10,19 +10,15 @@ from sqlalchemy.exc import SQLAlchemyError
 from config.config import Session
 from users.models.enums import UserType
 load_dotenv()
-
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = os.getenv("ALGORITHM")
-ACCESS_TOKEN_EXPIRE_DAYS = os.getenv("ACCESS_TOKEN_EXPIRE_DAYS")
-
 class UsersService:
     """Service class that encapsulates all user-related business logic."""
 
     def __init__(self):
         # cache env configuration for easy access inside methods
-        self.SECRET_KEY = SECRET_KEY
-        self.ALGORITHM = ALGORITHM
-        self.ACCESS_TOKEN_EXPIRE_DAYS = int(ACCESS_TOKEN_EXPIRE_DAYS)
+        self.SECRET_KEY = os.getenv("SECRET_KEY")
+        self.ALGORITHM = os.getenv("ALGORITHM")
+        self.ACCESS_TOKEN_EXPIRE_DAYS = int(os.getenv("ACCESS_TOKEN_EXPIRE_DAYS"))
+        self.db = Session()
 
     async def exchange_auth_code_for_token(self, auth_code: str):
         try:
@@ -121,7 +117,6 @@ class UsersService:
             raise HTTPException(status_code=401, detail=str(e))
 
     async def create_user(self, user: UserCreate):
-        db = Session()
         try:
             # Check if we're receiving a UserCreate (which has .dict()) or a User instance
             if hasattr(user, 'dict'):
@@ -130,47 +125,45 @@ class UsersService:
                 # If user is already a User instance, use it directly
                 db_user = user
                 
-            db.add(db_user)
-            db.commit()
-            db.refresh(db_user)
+            self.db.add(db_user)
+            self.db.commit()
+            self.db.refresh(db_user)
             return db_user
         except SQLAlchemyError as e:
-            db.rollback()
+            self.db.rollback()
             raise HTTPException(status_code=500, detail=str(e))
         except Exception as e:
-            db.rollback()
+            self.db.rollback()
             raise HTTPException(status_code=500, detail=str(e))
         finally:
-            db.close()
+            self.db.close()
 
     async def blacklist_user(self, user_email: str):
-        db = Session()
         try:
-            db_user = db.query(User).filter(User.email == user_email).first()
+            db_user = self.db.query(User).filter(User.email == user_email).first()
             if db_user:
                 db_user.blackListed = True
-                db.commit()
-                db.refresh(db_user)
+                self.db.commit()
+                self.db.refresh(db_user)
                 return db_user
             else:
                 print(f"User not found for email: {user_email}")
                 return None
         except SQLAlchemyError as e:
-            db.rollback()
+            self.db.rollback()
             print(f"SQL error in blacklist_user: {str(e)}")
             raise HTTPException(status_code=500, detail=str(e))
         except Exception as e:
-            db.rollback()
+            self.db.rollback()
             print(f"Unexpected error in blacklist_user: {str(e)}")
             raise HTTPException(status_code=500, detail=str(e))
         finally:
-            db.close()
+            self.db.close()
 
 
     async def get_user(self, user_email: str):
-        db = Session()
         try:
-            db_user = db.query(User).filter(User.email == user_email).first()
+            db_user = self.db.query(User).filter(User.email == user_email).first()
             return db_user
         except SQLAlchemyError as e:
             print(f"SQL error in get_user: {str(e)}")
@@ -179,27 +172,26 @@ class UsersService:
             print(f"Unexpected error in get_user: {str(e)}")
             raise HTTPException(status_code=500, detail=str(e))
         finally:
-            db.close()
+            self.db.close()
 
     async def update_last_time_service_used(self, user_email: str):
-        db = Session()
         try:
-            db_user = db.query(User).filter(User.email == user_email).first()
+            db_user = self.db.query(User).filter(User.email == user_email).first()
             if db_user:
                 db_user.last_time_service_used = datetime.now()
-                db.commit()
-                db.refresh(db_user)
+                self.db.commit()
+                self.db.refresh(db_user)
                 return db_user
             else:
                 print(f"User not found for email: {user_email}")
                 return None
         except SQLAlchemyError as e:
-            db.rollback()
+            self.db.rollback()
             print(f"SQL error in update_last_time_service_used: {str(e)}")
             raise HTTPException(status_code=500, detail=str(e))
         except Exception as e:
-            db.rollback()
+            self.db.rollback()
             print(f"Unexpected error in update_last_time_service_used: {str(e)}")
             raise HTTPException(status_code=500, detail=str(e))
         finally:
-            db.close()
+            self.db.close()

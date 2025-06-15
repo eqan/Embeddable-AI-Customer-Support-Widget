@@ -1,6 +1,3 @@
-# -----------------------------
-# Imports & global configuration
-# -----------------------------
 from chatbot.prompts.load_prompt import load_prompt
 from chatbot.dtos.chatbot import ChatbotRequest
 from config.config import generation_config, Session
@@ -18,19 +15,11 @@ from datetime import datetime
 # Singleton-like settings instance (can be shared across class instances)
 settings = Settings()
 
-# -----------------------------
-# Service Class Implementation
-# -----------------------------
-
 class ChatbotService:
     """Service encapsulating all chatbot-related logic including LLM calls and DB ops."""
-
-    # Maximum retry attempts for LLM calls
-    MAX_ATTEMPTS = 5
-
-    # -------------------------
-    # Helper Methods (static)
-    # -------------------------
+    def __init__(self):
+        self.MAX_ATTEMPTS = 5
+        self.db = Session()
 
     @staticmethod
     def _extract_json_from_parts(parts: list[dict]) -> str:
@@ -159,7 +148,6 @@ class ChatbotService:
         raise last_error if last_error else HTTPException(status_code=500, detail="Failed to get valid response from LLM")
 
     async def save_chat_history(self, chatbot_request: ChatbotRequest, user_id: int):
-        db = Session()
         try:
             existing_history = await self.get_chat_history(chatbot_request.session_id)
             if existing_history:
@@ -176,24 +164,23 @@ class ChatbotService:
                 updated_at=datetime.utcnow(),
             )
 
-            db.add(chat)
-            db.commit()
-            db.refresh(chat)
+            self.db.add(chat)
+            self.db.commit()
+            self.db.refresh(chat)
             return chat
         except SQLAlchemyError as e:
-            db.rollback()
+            self.db.rollback()
             raise HTTPException(status_code=500, detail=str(e))
         except Exception as e:
-            db.rollback()
+            self.db.rollback()
             raise HTTPException(status_code=500, detail=str(e))
         finally:
-            db.close()
+            self.db.close()
 
     async def get_chat_history(self, session_id: str):
-        db = Session()
         try:
             # Get chat history for the given session_id
-            chat_history = db.query(Chat).filter(Chat.session_id == session_id).all()
+            chat_history = self.db.query(Chat).filter(Chat.session_id == session_id).all()
             if chat_history:
                 return chat_history
             else:
@@ -201,31 +188,29 @@ class ChatbotService:
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
         finally:
-            db.close()
+            self.db.close()
 
     async def get_all_chats(self, user_id: int):
-        db = Session()
         try:
-            chats = db.query(Chat).filter(Chat.user_id == user_id).all()
+            chats = self.db.query(Chat).filter(Chat.user_id == user_id).all()
             return chats
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
         finally:
-            db.close()
+            self.db.close()
 
     async def update_chat_history(self, chatbot_request: ChatbotRequest):
-        db = Session()
         try:
-            chat = db.query(Chat).filter(Chat.session_id == chatbot_request.session_id).first()
+            chat = self.db.query(Chat).filter(Chat.session_id == chatbot_request.session_id).first()
             if chat:
                 chat.message = chatbot_request.message
                 chat.chat_history = str(chatbot_request.chat_history)
                 chat.updated_at = datetime.utcnow()
-                db.commit()
-                db.refresh(chat)
+                self.db.commit()
+                self.db.refresh(chat)
             return chat
         except Exception as e:
-            db.rollback()
+            self.db.rollback()
             raise HTTPException(status_code=500, detail=str(e))
         finally:
-            db.close()
+            self.db.close()
