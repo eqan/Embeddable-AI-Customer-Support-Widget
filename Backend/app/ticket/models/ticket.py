@@ -16,7 +16,7 @@ class Ticket(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     session_id = Column(String, nullable=False)
     message = Column(Text, nullable=False)
-    status = Column(String, nullable=False, default=TicketStatus.OPEN)
+    status = Column(String, nullable=False, default=TicketStatus.OPEN.value)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow,
                         onupdate=datetime.utcnow)

@@ -141,12 +141,14 @@ class ChatbotService:
                 await self.save_chat_history(chatbot_request, user_id)
                 if response.is_human_handoff:
                     try:
+                        ticket_uuid = "TICKET-" + str(uuid.uuid4())
                         self.ticket_service.create_ticket(TicketCreate(
                             user_id=user_id,
                             message=chatbot_request.message,
                             session_id=chatbot_request.session_id,
-                            uuid="TICKET-" + str(uuid.uuid4()),
+                            uuid=ticket_uuid
                         ))
+                        response.ticket_uuid = ticket_uuid
                     except Exception as e:
                         print(f"Error creating ticket: {e}")
                 return response
