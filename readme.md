@@ -3,10 +3,9 @@
 This document details the completed work for the Embeddable AI Customer Support Widget, addressing each core requirement and consideration outlined in the "Technical Interview Task" document.
 
 ## Loom Demo Videos
+
 - [Demo Video 1](https://www.loom.com/share/043d8422b38e4b658230b7011a29049f?sid=ece64777-9ed4-428a-9ffc-d4fe0af53c29)
-
 - [Demo Video 2](https://www.loom.com/share/043d8422b38e4b658230b7011a29049f?sid=ece64777-9ed4-428a-9ffc-d4fe0af53c29)
-
 - [Demo Video 3](https://www.loom.com/share/503870836f474ad9aecf4e06ff4b425a?sid=4668a988-bef3-4f45-a152-3be41908198d)
 
 ## 1. Embeddable Widget
@@ -62,7 +61,12 @@ This document details the completed work for the Embeddable AI Customer Support 
 
 **Demo Screenshots:**
 
-![1749929994017](image/main/1749929994017.png)
+<table style="width: 100%; height: 50%;">
+  <tr>
+    <td><img src="image/main/1749929994017.png" alt="1749929994017" style="width: 100%; height: 100%;"> Desktop View</td>
+    <td><img src="image/readme/1750011942275.png" alt="1750011942275" style="width: 100%; height: 100%;">Mobile View</td>
+  </tr>
+</table>
 
 **Implementation Details:**
 
@@ -144,8 +148,8 @@ This document details the completed work for the Embeddable AI Customer Support 
 
 <table>
   <tr>
-    <td><img src="image/readme/1749976763812.png" alt="1749976763812" style="width: 100%; height: 50%;"></td>
-    <td><img src="image/readme/1749976821435.png" alt="1749976821435" style="width: 100%; height: 50%;"></td>
+    <td><img src="image/readme/1749976763812.png" alt="1749976763812" style="width: 100%; height: 50%;">Sentry</td>
+    <td><img src="image/readme/1749976821435.png" alt="1749976821435" style="width: 100%; height: 50%;">Analytics</td>
   </tr>
 </table>
 
@@ -207,7 +211,7 @@ This document details the completed work for the Embeddable AI Customer Support 
 
   ![1749978348993.png](image/readme/1749978348993.png)
 
-    <table>
+  <table>
       <tr>
         <td><img src="image/readme/1749977650402.png" alt="Image 2" style="width: 100%; height: 50%;"></td>
         <td><img src="image/readme/1749977669087.png" alt="Image 3" style="width: 100%; height: 50%;"></td>
@@ -256,4 +260,4 @@ This document details the completed work for the Embeddable AI Customer Support 
 
 ## Future Considerations
 
-Shifting Calendly and Emai notification systems to backend via APIs for enhanced security, but need to find a way on how to automtically get calendly API key and email service credentials from the user. So we can stop people from getting their hands on even public API's and URLs.
+Shifting Calendly and Email notification systems to backend via APIs for enhanced security, but need to find a way on how to automtically get calendly API key and email service credentials from the user. So we can stop people from getting their hands on even public API's and URLs.
