@@ -5,12 +5,15 @@ from config.settings import Settings
 import requests
 import json
 from chatbot.dtos.chatbot_response import ChatbotResponse
+from ticket.ticketService import TicketService
 from pydantic import ValidationError as ResponseValidationError
 from fastapi import HTTPException
 import re
 from chatbot.models.chat import Chat
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
+import uuid
+from ticket.dtos.ticket import TicketCreate
 
 # Singleton-like settings instance (can be shared across class instances)
 settings = Settings()
@@ -20,6 +23,7 @@ class ChatbotService:
     def __init__(self):
         self.MAX_ATTEMPTS = 5
         self.db = Session()
+        self.ticket_service = TicketService()
 
     @staticmethod
     def _extract_json_from_parts(parts: list[dict]) -> str:
@@ -135,6 +139,16 @@ class ChatbotService:
                 response = self._clean_and_parse_json(json_block)
                 chatbot_request.chat_history.append({"role": "model", "content": response.response, "is_booking": response.is_booking, "is_human_handoff": response.is_human_handoff})
                 await self.save_chat_history(chatbot_request, user_id)
+                if response.is_human_handoff:
+                    try:
+                        self.ticket_service.create_ticket(TicketCreate(
+                            user_id=user_id,
+                            message=chatbot_request.message,
+                            session_id=chatbot_request.session_id,
+                            uuid="TICKET-" + str(uuid.uuid4()),
+                        ))
+                    except Exception as e:
+                        print(f"Error creating ticket: {e}")
                 return response
 
             except (HTTPException, ValueError, json.JSONDecodeError) as err:

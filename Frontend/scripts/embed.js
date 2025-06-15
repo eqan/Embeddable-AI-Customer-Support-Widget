@@ -785,7 +785,6 @@ em-emoji-picker {
           form.addEventListener("submit", async (e) => {
             e.preventDefault();
             const fd = new FormData(form);
-            const ticketId = "TICKET-" + Date.now().toString(36).toUpperCase();
 
             const payload = {
               name: fd.get("name"),
@@ -793,7 +792,7 @@ em-emoji-picker {
               phone: fd.get("phone") || "N/A",
               message: fd.get("message"),
               priority: fd.get("priority"),
-              ticketId,
+              ticket_uuid: data?.ticket_uuid,
             };
 
             try {
@@ -805,7 +804,7 @@ em-emoji-picker {
               );
 
               // Acknowledge in chat
-              messageElement.textContent = `Thank you! Your ticket (${ticketId}) has been created. Our support team will reach out to you at ${payload.email}.`;
+              messageElement.textContent = `Thank you! Your ticket (${data?.ticket_uuid}) has been created. Our support team will reach out to you at ${payload.email}.`;
               wrapper.remove();
             } catch (err) {
               console.error(err);

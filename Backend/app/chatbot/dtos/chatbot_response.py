@@ -16,6 +16,7 @@ class ChatbotResponse(BaseModel):
     response: str = Field(..., description="The assistant's natural-language reply")
     is_booking: bool = Field(..., description="Whether a booking should be initiated")
     is_human_handoff: bool = Field(..., description="Whether to hand off the conversation to a human agent")
+    ticket_uuid: str | None = Field(None, description="The UUID of the ticket to be created")
 
     # Pydantic v1 & v2 compatibility validator.
     @root_validator(pre=True)
