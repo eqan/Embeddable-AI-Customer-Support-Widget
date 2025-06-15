@@ -2,6 +2,13 @@
 
 This document details the completed work for the Embeddable AI Customer Support Widget, addressing each core requirement and consideration outlined in the "Technical Interview Task" document.
 
+## Loom Demo Videos
+- [Demo Video 1](https://www.loom.com/share/043d8422b38e4b658230b7011a29049f?sid=ece64777-9ed4-428a-9ffc-d4fe0af53c29)
+
+- [Demo Video 2](https://www.loom.com/share/043d8422b38e4b658230b7011a29049f?sid=ece64777-9ed4-428a-9ffc-d4fe0af53c29)
+
+- [Demo Video 3](https://www.loom.com/share/503870836f474ad9aecf4e06ff4b425a?sid=4668a988-bef3-4f45-a152-3be41908198d)
+
 ## 1. Embeddable Widget
 
 **Requirements Met:**
@@ -21,16 +28,21 @@ This document details the completed work for the Embeddable AI Customer Support 
           primaryDark: "#00695c",
           accent: "#b2dfdb",
         },
-        emailJsUserId: "QUgX6iwMF67qdwdWz",
-        emailJsServiceId: "service_5azqk76",
-        emailJsSupportTemplateId: "template_yatg54g", // notification to support desk
-        emailJsUserTemplateId: "template_yatg54g", // confirmation to requester
-        title: "Embedded Chatbot", // Name of the chatbot displayed on the title
-        backendBaseUrl: "http://localhost:8000", // Backend URL
-        googleClientId: "623127930807-cku8teni1657tg5poqn467becavouts8.apps.googleusercontent.com",
-        hostUrl: "https://crumblcookies.com/", // Targetted Company
-        hostDescription: "Crumbl Cookies is a cookie company that sells cookies", // Description of the targetted company
-        calendlyUrl: "https://calendly.com/eqan-ahmad123/customer-agent", // Calendly URL to host meetings
+        // Email Configuration
+        emailJsUserId: "",
+        emailJsServiceId: "",
+        emailJsSupportTemplateId: "",
+        emailJsUserTemplateId: "",
+        // Title of Chatbot
+        title: "Embedded Chatbot",
+        // Backend URL for our service
+        backendBaseUrl: "http://localhost:8000",
+        // Google Authentication
+        googleClientId: "",
+        // Target Company Data
+        hostUrl: "https://crumblcookies.com/",
+        hostDescription: "Crumbl Cookies is a cookie company that sells cookies",
+        calendlyUrl: "",
       };
     `</script>`
 
@@ -193,10 +205,9 @@ This document details the completed work for the Embeddable AI Customer Support 
   - Integration guide: Provided in the `script` tag example.
   - API documentation: Provided by FAST API[Use the FAST API interactive docs] and also in the commented code.
 
+  ![1749978348993.png](image/readme/1749978348993.png)
+
     <table>
-      <tr>
-        <td><img src="image/readme/1749978348993.png" alt="Image 1" style="width: 100%; height: 50%;"></td>
-      </tr>
       <tr>
         <td><img src="image/readme/1749977650402.png" alt="Image 2" style="width: 100%; height: 50%;"></td>
         <td><img src="image/readme/1749977669087.png" alt="Image 3" style="width: 100%; height: 50%;"></td>
@@ -216,7 +227,7 @@ This document details the completed work for the Embeddable AI Customer Support 
 
   - Google Calendar integration works correctly: Fulfilled via Calendly.
   - Human handoff form and email system functions properly: Fulfilled using EmailJS and the in-built issue tracking.
-  - All interactions are logged to database: Fulfilled with PostgreSQL and Sentry.
+  - entry.
   - AI provides relevant responses: Fulfilled by Gemini 2.0 with Google Search capabilities.
 - **User Experience (20%):**
 

@@ -26,6 +26,18 @@
       
 <h1 id="technical-interview-task-embeddable-ai-customer-support-widget---work-done">Technical Interview Task: Embeddable AI Customer Support Widget - Work Done </h1>
 <p>This document details the completed work for the Embeddable AI Customer Support Widget, addressing each core requirement and consideration outlined in the "Technical Interview Task" document.</p>
+<h2 id="loom-demo-videos">Loom Demo Videos </h2>
+<ul>
+<li>
+<p><a href="https://www.loom.com/share/043d8422b38e4b658230b7011a29049f?sid=ece64777-9ed4-428a-9ffc-d4fe0af53c29">Demo Video 1</a></p>
+</li>
+<li>
+<p><a href="https://www.loom.com/share/043d8422b38e4b658230b7011a29049f?sid=ece64777-9ed4-428a-9ffc-d4fe0af53c29">Demo Video 2</a></p>
+</li>
+<li>
+<p><a href="https://www.loom.com/share/503870836f474ad9aecf4e06ff4b425a?sid=4668a988-bef3-4f45-a152-3be41908198d">Demo Video 3</a></p>
+</li>
+</ul>
 <h2 id="1-embeddable-widget">1. Embeddable Widget </h2>
 <p><strong>Requirements Met:</strong></p>
 <ul>
@@ -43,16 +55,21 @@
       primaryDark: "#00695c",
       accent: "#b2dfdb",
     },
-    emailJsUserId: "QUgX6iwMF67qdwdWz",
-    emailJsServiceId: "service_5azqk76",
-    emailJsSupportTemplateId: "template_yatg54g", // notification to support desk
-    emailJsUserTemplateId: "template_yatg54g", // confirmation to requester
-    title: "Embedded Chatbot", // Name of the chatbot displayed on the title
-    backendBaseUrl: "http://localhost:8000", // Backend URL
-    googleClientId: "623127930807-cku8teni1657tg5poqn467becavouts8.apps.googleusercontent.com",
-    hostUrl: "https://crumblcookies.com/", // Targetted Company
-    hostDescription: "Crumbl Cookies is a cookie company that sells cookies", // Description of the targetted company
-    calendlyUrl: "https://calendly.com/eqan-ahmad123/customer-agent", // Calendly URL to host meetings
+    // Email Configuration
+    emailJsUserId: "",
+    emailJsServiceId: "",
+    emailJsSupportTemplateId: "",
+    emailJsUserTemplateId: "",
+    // Title of Chatbot
+    title: "Embedded Chatbot",
+    // Backend URL for our service
+    backendBaseUrl: "http://localhost:8000",
+    // Google Authentication
+    googleClientId: "",
+    // Target Company Data
+    hostUrl: "https://crumblcookies.com/",
+    hostDescription: "Crumbl Cookies is a cookie company that sells cookies",
+    calendlyUrl: "",
   };
 `&lt;/script&gt;`
 </pre>
@@ -212,25 +229,17 @@
 <li>
 <p><strong>Documentation:</strong></p>
 <ul>
-<li>
-<p>Integration guide: Provided in the <code>script</code> tag example.</p>
-</li>
-<li>
-<p>API documentation: Provided by FAST API[Use the FAST API interactive docs] and also in the commented code.</p>
-<table>
-  <tbody><tr>
-    <td><img src="image/readme/1749978348993.png" alt="Image 1" style="width: 100%; height: 50%;"></td>
-  </tr>
-  <tr>
-    <td><img src="image/readme/1749977650402.png" alt="Image 2" style="width: 100%; height: 50%;"></td>
-    <td><img src="image/readme/1749977669087.png" alt="Image 3" style="width: 100%; height: 50%;"></td>
-  </tr>
-</tbody></table>
-</li>
-<li>
-<p>Setup instructions for Google Calendar and email services: Covered by the Calendly URL and EmailJS credentials in the configuration.</p>
-</li>
+<li>Integration guide: Provided in the <code>script</code> tag example.</li>
+<li>API documentation: Provided by FAST API[Use the FAST API interactive docs] and also in the commented code.</li>
 </ul>
+<p><img src="image/readme/1749978348993.png" alt="1749978348993.png"></p>
+  <table>
+    <tbody><tr>
+      <td><img src="image/readme/1749977650402.png" alt="Image 2" style="width: 100%; height: 50%;"></td>
+      <td><img src="image/readme/1749977669087.png" alt="Image 3" style="width: 100%; height: 50%;"></td>
+    </tr>
+  </tbody></table>
+- Setup instructions for Google Calendar and email services: Covered by the Calendly URL and EmailJS credentials in the configuration.
 </li>
 </ul>
 <h2 id="evaluation-criteria">Evaluation Criteria </h2>
@@ -238,7 +247,7 @@
 <li>
 <p><strong>Technical Implementation (40%):</strong></p>
 <ul>
-<li>Clean, well-organized code: Implied by the "screaming architecture" and choice of frameworks (FAST API, SQL Alchemy).</li>
+<li>Clean, well-organized code: Implied by the "screaming architecture", OOP for services + Functional Programming and choice of frameworks (FAST API, SQL Alchemy).</li>
 <li>Proper error handling: Sentry is installed in the backend for real-time system failure updates and bug tracking.</li>
 <li>Security best practices: Google OAuth, Rate limiting, CORS configuration, token-based authentication for requests, and payload limits are implemented.</li>
 <li>Widget integration works smoothly: Confirmed by the description of the embeddable and customizable widget</li>
@@ -249,7 +258,7 @@
 <ul>
 <li>Google Calendar integration works correctly: Fulfilled via Calendly.</li>
 <li>Human handoff form and email system functions properly: Fulfilled using EmailJS and the in-built issue tracking.</li>
-<li>All interactions are logged to database: Fulfilled with PostgreSQL</li>
+<li>entry.</li>
 <li>AI provides relevant responses: Fulfilled by Gemini 2.0 with Google Search capabilities.</li>
 </ul>
 </li>
