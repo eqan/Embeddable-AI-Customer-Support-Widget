@@ -100,7 +100,7 @@ This document details the completed work for the Embeddable AI Customer Support 
   - **All form requirements are met within the application.**
 - **Send email notification to support team with form details:** Fulfilled using EmailJS.
 - **Send auto-confirmation email to the user:** Fulfilled using EmailJS.
-- **Generate a support ticket ID for tracking:** Fulfilled. A support ticket ID is generated for tracking, as shown in the email example.
+- **Generate a support ticket ID for tracking:** Fulfilled. A support ticket ID is generated for tracking, as shown in the email example and all support tickets along with their status(Open|Closed|Inprogress) saved in the database for tracking.
 
 **Demo Screenshots:**
 
@@ -126,13 +126,17 @@ This document details the completed work for the Embeddable AI Customer Support 
 - **Log all conversations to Supabase|Postgres database:** Fulfilled. All user sessions and messages are stored in the backend databases.
 - **Track user sessions, messages, and actions taken:** Fulfilled. Stored sessions include information regarding bookings and human handoff forms.
 - **Store metadata like timestamps, user info, conversation outcomes:** Fulfilled. This information is part of the stored sessions.
-- **Basic analytics on conversation volume and success rates:** Fulfilled. Information is processed daily via a cron job to get the volume of conversations and success rates.
+- **Basic analytics on conversation volume and success rates:** Fulfilled. Information is processed daily via a cron job to get the volume of conversations and success rates and furthermore using sentry to track all API bugs, errors etc in real time
 
 **Demo Screenshots:**
 
+![1749976763812](image/readme/1749976763812.png)
+
+![1749976821435](image/readme/1749976821435.png)
+
 **Implementation Details:**
 
-- PostgreSQL is the chosen database for logging interactions in local development but Supabase provides instance of PostgreSQL in production so wouldn't be an issue.
+- PostgreSQL is the chosen database for logging interactions in local development but Supabase provides instance of PostgreSQL in production so wouldn't be an issue. Furthermore Sentry is chosen for error and issues logging of the APIs.
 
 ## Technical Stack Requirements
 
@@ -142,7 +146,7 @@ This document details the completed work for the Embeddable AI Customer Support 
 - **LLM:** Google Gemini Flash 2.0 (via OpenRouter API, with Google Search Support enabled).
 - **APIs:** Email service (EmailJS[Used in Frontend]), Calendly (instead of Google Calendar API).
 - **Framework:** FAST API with Python.
-- **Other:** Alembic, Sentry, Rate Limiter, Google Authentication, Ruff, Pydantic, SQL Alchemy.
+- **Other:** Alembic(Data Migrations), Sentry(Issues Logging), Rate Limiter, Google Authentication, Ruff(Python Linter), Pydantic(Typing Within Python), SQL Alchemy(ORM).
 
 **Frontend:**
 
@@ -154,14 +158,14 @@ This document details the completed work for the Embeddable AI Customer Support 
 ## Architecture Considerations for Future
 
 - **Appointment Rescheduling:** Already handled by Calendly, which offers API support for this.
-- **Internal Database Queries:** Easily attachable using SQL Alchemy ORM with Alembic migrations.
+- **Internal Database Queries:** Easily attachable using SQL Alchemy ORM with Alembic migrations or via API calls.
 - **Live Agent Handoff:** A flag or quick email notification to a human agent, with a real-time websocket connection if availability is confirmed, can facilitate seamless transition.
-- **Multi-language Support:** While not explicitly built, the modular architecture would likely support this expansion.
-- **Advanced Analytics:** Basic analytics are implemented, with potential for improvement on the analytics module or integration with tools like Google Analytics.
+- **Multi-language Support:** Easily done with the prompt.
+- **Advanced Analytics:** Basic analytics are implemented, with potential for improvement on the analytics module or integration with tools like Google Analytics. Sentry  also used for advanced issue related analytics.
 
 **Overall Architecture:**
 
-- The backend infrastructure is built on a "screaming architecture," emphasizing modularity and ease of modification.
+- The backend infrastructure is built on a "screaming architecture," emphasizing modularity and ease of modification. Furthermore OOP(Object Oriented Programming) is being utilized for service modules which can allow us for easy import of modules in other services and Functional Programming for REST APIs.
 - The chatbot is designed to be highly modular, allowing most changes to be handled by adjusting frontend parameters, with the backend automatically adapting.
 
 ## Deliverables
@@ -176,15 +180,19 @@ This document details the completed work for the Embeddable AI Customer Support 
   - RESTful API endpoints for chat, calendar, and support requests: Implemented with FAST API.
   - Google Calendar integration for availability and booking: Fulfilled through Calendly integration
   - Email notification system for support requests: Implemented using EmailJS.
-  - Database operations for logging interactions: Handled with Supabase (Postgres).
+  - Database operations for logging interactions: Handled with Postgres and Sentry.
 - **Database Setup:**
 
-  - PostgreSQL Native project with proper tables for conversations, bookings, and support requests: Implemented
-  - Vector embeddings setup for AI context: Not explicitly required or implemented based on the chosen AI context approach (Google Search with Gemini 2.0).
+  - PostgreSQL Native project with proper tables for conversations, bookings, and support requests: Implemented except for bookings as Calendly is handling it automatically.
+  - Vector embeddings setup for AI context: Not explicitly required or implemented based on the chosen AI context approach (Google Search with Gemini 2.0) which retrieves information automatically based on public information of the company(Website etc).
 - **Documentation:**
 
   - Integration guide: Provided in the `script` tag example.
   - API documentation: Provided by FAST API[Use the FAST API interactive docs] and also in the commented code.
+
+    ![1749978348993](image/readme/1749978348993.png)![1749977650402](image/readme/1749977650402.png)
+
+    ![1749977669087](image/readme/1749977669087.png)
   - Setup instructions for Google Calendar and email services: Covered by the Calendly URL and EmailJS credentials in the configuration.
 
 ## Evaluation Criteria

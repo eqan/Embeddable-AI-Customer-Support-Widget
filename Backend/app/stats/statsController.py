@@ -12,17 +12,29 @@ users_service = UsersService()
 # Global StatsService instance
 stats_service = StatsService()
 
-@router.post("/stats")
+@router.post("/stats", tags=["Stats"])
 @limiter.limit("5/second")
 async def generate_stats_endpoint(request: Request):
+    """
+    This endpoint generates stats for a user.\n
+    Body Parameters:
+    - token: str
+        The token for authentication.
+    """
     user_id = await users_service.verify_jwt_token_for_chatbot(request)
     if user_id is None:
         raise HTTPException(status_code=400, detail="User is blacklisted")
     return await stats_service.generate_stats(user_id)
 
-@router.get("/stats")
+@router.get("/stats", tags=["Stats"])
 @limiter.limit("5/second")
 async def get_stats_endpoint(request: Request):
+    """
+    This endpoint gets stats for a user.\n
+    Body Parameters:
+    - token: str
+        The token for authentication.
+    """
     user_id = await users_service.verify_jwt_token_for_chatbot(request)
     if user_id is None:
         raise HTTPException(status_code=400, detail="User is blacklisted")
