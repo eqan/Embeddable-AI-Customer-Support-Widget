@@ -8,6 +8,50 @@ This document details the completed work for the Embeddable AI Customer Support 
 - [Demo Video 2](https://www.loom.com/share/043d8422b38e4b658230b7011a29049f?sid=ece64777-9ed4-428a-9ffc-d4fe0af53c29)
 - [Demo Video 3](https://www.loom.com/share/503870836f474ad9aecf4e06ff4b425a?sid=4668a988-bef3-4f45-a152-3be41908198d)
 
+## Setup Project
+
+### Backend Setup
+
+1. Use uv to install dependencies(`uv sync`) and set up the backend.
+
+2. Set up a PostgreSQL DB instance.
+
+3. Fill out environment variables based on .env.example. Key variables include:
+
+MODEL_API_KEY=your_gemini_api_key
+MODEL_NAME=gemini-2.0-flash
+DB_USER=...
+DB_PASSWORD=...
+
+Then finally run `python3 app.py`, it will create the table automatically and run the server.
+
+`uvicorn app:app --host 0.0.0.0 --port 8000 --reload` command for live debugging
+
+### Frontend Setup
+
+1. Open index.html from the Frontend folder in your browser.
+
+2. Ensure the environment configuration is set in the embedded script:
+
+window.ChatbotWidgetConfig = {
+  backendBaseUrl: "http://localhost:8000",
+  title: "Embedded Chatbot",
+  hostUrl: "https://company-website.com",
+  hostDescription: "Short description of company",
+  ...
+};
+
+You will need service credentials for Email JS, Google OAuth etc(As mine are private), Provided are the links to get them:
+
+Email JS: https://dashboard.emailjs.com
+Google OAuth: https://developers.google.com/identity/protocols/oauth2
+Gemini API Key: https://ai.google.dev/gemini-api/docs/api-key
+Sentry: https://sentry.io After creating account + project, goto "Project -> settings -> Client Keys" to get the DSN key.
+AstraDB: https://docs.datastax.com/en/astra-db-serverless/index.html
+
+Then open the frontend by copy pasting the index.html file path into the browser e.g  "/Embeddable-AI-Customer-Support-Widget/Frontend/index.html"
+That’s it — the chatbot should be up and running on your local machine. 
+
 ## 1. Embeddable Widget
 
 **Requirements Met:**
