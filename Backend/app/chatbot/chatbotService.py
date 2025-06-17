@@ -1,4 +1,4 @@
-from chatbot.prompts.load_prompt import load_prompt
+from prompts.load_prompt import load_prompt
 from chatbot.dtos.chatbot import ChatbotRequest
 from config.config import generation_config, Session
 from config.settings import Settings
@@ -88,7 +88,8 @@ class ChatbotService:
         """Call Gemini LLM with retries and return validated response."""
         model_name = settings.model_name or "gemini-2.0-flash"
 
-        prompt = load_prompt()
+        prompt = load_prompt("response-generation.prompt")
+        print("prompt", prompt)
         prompt = prompt.replace("{website_url}", chatbot_request.website_url)
         prompt = prompt.replace("{message}", chatbot_request.message)
         prompt = prompt.replace("{website_description}", chatbot_request.website_description)
@@ -229,3 +230,5 @@ class ChatbotService:
             raise HTTPException(status_code=500, detail=str(e))
         finally:
             self.db.close()
+
+chatbot_service = ChatbotService()

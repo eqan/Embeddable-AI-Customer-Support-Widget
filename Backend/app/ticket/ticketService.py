@@ -44,3 +44,5 @@ class TicketService:
             return self.db.query(Ticket).filter(Ticket.user_id == user_id).all()
         except Exception as e:
             raise e
+
+ticket_service = TicketService()

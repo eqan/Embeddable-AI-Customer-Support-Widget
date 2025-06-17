@@ -195,3 +195,5 @@ class UsersService:
             raise HTTPException(status_code=500, detail=str(e))
         finally:
             self.db.close()
+
+users_service = UsersService()

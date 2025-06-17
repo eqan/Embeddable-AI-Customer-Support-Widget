@@ -1,17 +1,10 @@
 from fastapi import APIRouter
-from stats.statsService import StatsService
+from stats.statsService import stats_service
 from fastapi import Request, HTTPException
-from users.usersService import UsersService
+from users.usersService import users_service
 from config.config import limiter
 
 router = APIRouter()
-
-# Global UsersService instance
-users_service = UsersService()
-
-# Global StatsService instance
-stats_service = StatsService()
-
 @router.post("/stats", tags=["Stats"])
 @limiter.limit("5/second")
 async def generate_stats_endpoint(request: Request):

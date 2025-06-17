@@ -1,12 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends
 import httpx
 from users.dtos.authCode import AuthCodePayload
-from users.usersService import UsersService
+from users.usersService import users_service
 
 router = APIRouter()
-
-# Global instance of the UsersService class
-users_service = UsersService()
 
 @router.post("/google-login", tags=["Users"])
 async def google_login(payload: AuthCodePayload):

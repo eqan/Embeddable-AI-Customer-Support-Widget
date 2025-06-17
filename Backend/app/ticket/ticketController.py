@@ -1,17 +1,12 @@
-from ticket.ticketService import TicketService
+from ticket.ticketService import ticket_service
 from ticket.dtos.ticket import TicketUpdate
 from fastapi import APIRouter, Request, HTTPException
 from config.config import limiter
-from users.usersService import UsersService
+from users.usersService import users_service
 from utils.security import enforce_payload_size
 from fastapi import Depends
 
 router = APIRouter()
-ticket_service = TicketService()
-
-# Global instance of UsersService
-users_service = UsersService()
-
 @router.put("/ticket", dependencies=[Depends(enforce_payload_size)], tags=["Ticket"])
 @limiter.limit("5/second")
 async def update_ticket(

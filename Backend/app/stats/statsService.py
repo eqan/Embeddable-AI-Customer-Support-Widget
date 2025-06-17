@@ -119,3 +119,5 @@ class StatsService:
         return sum(
             1 for msg in history if isinstance(msg, dict) and msg.get("role") == "user"
         )
+
+stats_service = StatsService()
