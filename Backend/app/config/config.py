@@ -70,4 +70,3 @@ database = DataAPIClient(settings.astra_db_client_secret).get_database(settings.
 
 # Ingest vectors into your collection
 collection = database.test_collection
-collection.insert_many(documents=DOCUMENTS)
