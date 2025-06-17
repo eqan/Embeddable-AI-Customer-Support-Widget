@@ -24,4 +24,4 @@ class IngestionData(BaseModel):
     title: str = Field(..., description="Title or heading of the section this chunk belongs to")
     section: str = Field(..., description="Broader section or category within the source")
     
-    metadata: dict = Field(..., description="A dictionary for use-case specific attributes")
+    specific_metadata: dict = Field(..., description="A dictionary for use-case specific attributes")

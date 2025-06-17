@@ -179,11 +179,16 @@ class IngestionService:
         data = self.embed_inputs(generated_data)
         return data
     
-    def embed_inputs(self, data: [WebsiteScrapeResult]):
-        for data in data:
-            text = f"{data['title']} {data['section']} {data['content_type']} {data['summarized_content']}"
-            data['values'] = self.embed_text(text)
-        return data
+    def embed_inputs(self, array_of_data: [WebsiteScrapeResult]):
+        data_for_pinecone = []
+        for data in array_of_data:
+            _data = {
+                "id": data.url,
+                "values": self.embed_text(f"{data['title']} {data['section']} {data['content_type']} {data['summarized_content']}"),
+                "metadata": data
+            }
+            data_for_pinecone.append(_data)
+        return data_for_pinecone
 
     def embed_text(self, text: str):
         """
