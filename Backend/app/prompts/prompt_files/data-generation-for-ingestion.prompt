@@ -18,7 +18,7 @@ Your job is to analyse **only** the information contained in {markdown} (and the
    – Remove any irrelevant content such as image URLs, grammar mistakes, advertisements, or anything not pertinent to the core content.
    – Ensure the cleaned content maintains the original meaning and context while enhancing it with valuable insights.
 
-2. "metadata" (object)
+2. "specific_metadata" (object)
    – A flexible dictionary of attributes relevant to the specific content. Typical patterns:
         • Project pages → {"project_id", "project_name", "technologies": [...], "keywords": [...], "completion_date", "client_sector", "is_featured"}
         • Doctor profile → {"doctor_name", "specialty", "experience_years", "certifications": [...], "clinic_location", "available_for_consult"}
@@ -45,7 +45,7 @@ Return **ONLY** the following JSON (no additional keys, comments, markdown fence
   "summarized_content": string,
   "cleaned_content": string,
   "content_type": string
-  "metadata": object,
+  "specific_metadata": object,
   "title": string,
   "section": string,
 }
