@@ -4,6 +4,7 @@ import google.generativeai as genai
 from config.settings import Settings
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from astrapy import DataAPIClient
 
 settings = Settings()
 
@@ -62,3 +63,11 @@ engine = create_engine(
 
 # Create a session
 Session = sessionmaker(bind=engine)
+
+
+# connect to a database
+database = DataAPIClient(settings.astra_db_client_secret).get_database(settings.astra_db_api_endpoint)
+
+# Ingest vectors into your collection
+collection = database.test_collection
+collection.insert_many(documents=DOCUMENTS)

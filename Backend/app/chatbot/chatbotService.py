@@ -112,7 +112,7 @@ class ChatbotService:
             ],
             "generationConfig": generation_config,
               "tools": [
-                { "googleSearch": {} },   # Gemini REST expects camelCase tool names
+                { "googleSearch": {} },
             ]
         }
 
@@ -160,7 +160,6 @@ class ChatbotService:
                     raise last_error
                 print(f"Retrying Gemini call after error: {err}")
 
-        # Should never reach here, but just in case
         raise last_error if last_error else HTTPException(status_code=500, detail="Failed to get valid response from LLM")
 
     async def save_chat_history(self, chatbot_request: ChatbotRequest, user_id: int):
