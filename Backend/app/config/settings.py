@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     firecrawl_api_key: str = os.getenv("FIRECRAWL")
     voyage_api_key: str = os.getenv("VOYAGE_API_KEY")
     embedding_model: str = os.getenv("EMBEDDING_MODEL")
+    reasoning_model_api_key: str = os.getenv("REASONING_MODEL_API_KEY")
     
     model_config = SettingsConfigDict(
         env_file=os.path.join(os.path.dirname(__file__), "../../.env"),
