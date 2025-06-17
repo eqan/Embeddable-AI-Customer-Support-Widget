@@ -70,8 +70,4 @@ database = DataAPIClient(settings.astra_db_client_secret).get_database(settings.
 collection = database.test_collection
 
 
-app = FirecrawlApp(api_key=settings.firecrawl_api_key)
-
-# Scrape a website:
-scrape_result = app.scrape_url('firecrawl.dev', formats=['markdown', 'html'])
-print(scrape_result)
+firecrawl_app = FirecrawlApp(api_key=settings.firecrawl_api_key)
