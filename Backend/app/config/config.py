@@ -5,6 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from astrapy import DataAPIClient
 from firecrawl import FirecrawlApp
+import voyageai
 
 settings = Settings()
 
@@ -66,8 +67,6 @@ Session = sessionmaker(bind=engine)
 # connect to a database
 database = DataAPIClient(settings.astra_db_client_secret).get_database(settings.astra_db_api_endpoint)
 
-# Ingest vectors into your collection
-collection = database.test_collection
-
+vo = voyageai.Client(api_key=settings.voyage_api_key)
 
 firecrawl_app = FirecrawlApp(api_key=settings.firecrawl_api_key)

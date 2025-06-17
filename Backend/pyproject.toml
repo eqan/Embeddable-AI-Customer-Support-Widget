@@ -20,4 +20,5 @@ dependencies = [
     "slowapi>=0.1.9",
     "sqlalchemy>=2.0.41",
     "uvicorn>=0.30.6",
+    "voyageai>=0.3.2",
 ]
