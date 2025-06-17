@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     sentry_dsn: str = os.getenv("SENTRY_DSN")
     astra_db_client_secret: str = os.getenv("ASTRA_CS")
     astra_db_api_endpoint: str = os.getenv("ASTRA_DB_ENDPOINT")
+    firecrawl_api_key: str = os.getenv("FIRECRAWL")
     
     model_config = SettingsConfigDict(
         env_file=os.path.join(os.path.dirname(__file__), "../../.env"),

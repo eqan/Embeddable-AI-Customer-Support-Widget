@@ -1,10 +1,10 @@
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-import google.generativeai as genai
 from config.settings import Settings
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from astrapy import DataAPIClient
+from firecrawl import FirecrawlApp
 
 settings = Settings()
 
@@ -30,8 +30,6 @@ safety_settings = [
   {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_ALL"},
   {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_ALL"},
 ]
-
-genai.configure(api_key=settings.model_api_key)
 
 # Suppose you have an array with credentials in the order: [USER, PASSWORD, HOST, PORT, DATABASE]
 credentials = {
@@ -70,3 +68,10 @@ database = DataAPIClient(settings.astra_db_client_secret).get_database(settings.
 
 # Ingest vectors into your collection
 collection = database.test_collection
+
+
+app = FirecrawlApp(api_key=settings.firecrawl_api_key)
+
+# Scrape a website:
+scrape_result = app.scrape_url('firecrawl.dev', formats=['markdown', 'html'])
+print(scrape_result)
