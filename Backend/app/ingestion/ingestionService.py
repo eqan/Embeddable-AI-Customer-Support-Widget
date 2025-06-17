@@ -80,15 +80,18 @@ class IngestionService:
             response = requests.post(url, headers=headers, json=data)
             return response.json()
     
-    def generate_data_for_ingestion(self, list_of_data: [WebsiteScrapeResult]):
+    def generate_data_for_ingestion(self, list_of_data: [WebsiteScrapeResult], ingestion: Ingestion):
         generated_data = []
         print(list_of_data)
-        def process_data(data: WebsiteScrapeResult):
+        def process_data(data: WebsiteScrapeResult, ingestion: Ingestion):
+            url = data.url
+            company_name = ingestion.company_name
+            company_website = ingestion.company_website
             prompt = load_prompt("data-generation-for-ingestion")
             prompt = prompt.replace("{markdown}", data.markdown)
             prompt = prompt.replace("{description}", data.description)
             prompt = prompt.replace("{title}", data.title)
-            prompt = prompt.replace("{url}", data.url)
+            prompt = prompt.replace("{url}", url)
             response = self.deep_seek_api_call(prompt)
             # The model usually returns a JSON string. Remove any markdown code fences and parse it.
             content_str = response.get('choices')[0].get('message').get('content', "")
@@ -97,85 +100,27 @@ class IngestionService:
                 content_str = re.sub(r"^```[a-zA-Z]*\n|\n```$", "", content_str.strip())
 
             try:
-                return json.loads(content_str)
+                data = json.loads(content_str)
+                data['source_url'] = url
+                data['company_name'] = company_name
+                data['company_website'] = company_website
+
+                return data
             except json.JSONDecodeError as e:
                 # Log & fall back to raw string to avoid crashing the whole ingestion pipeline
                 print(f"[generate_data_for_ingestion] JSON decode error: {e}. Returning raw content.")
                 return content_str
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            results = list(executor.map(process_data, list_of_data))
+            results = list(executor.map(process_data, list_of_data, ingestion))
 
         generated_data.extend(results)
         return generated_data
 
     def ingest_data(self, ingestion: Ingestion):
-        # batch_scrape_result = self.scrape_websites(ingestion)
-        # cleaned_data = self.firecrawl_cleaner(ingestion, batch_scrape_result)
-        # generated_data = self.generate_data_for_ingestion(cleaned_data)
-        generated_data: [WebsiteScrapeResult] = [
-    {
-        "summarized_content": "Crumbl Cookies offers a variety of freshly baked, gourmet cookies and desserts with unique and trendy flavors that change weekly. The menu for the week of June 16-21 features national flavors, including the Semi-Sweet Chocolate Chunk Cookie, Peanut Butter Cup Skillet Cookie (featuring REESE'S), Berry Trifle Cake Cup, Wedding Cake Cookie, Chocolate Toffee Cake Cookie (featuring HEATH), Cinnamon Roll Cookie, and Triple Chocolate Chip Cookie. Each item is described with its key ingredients and flavors, emphasizing real ingredients like eggs, butter, sugar, and house-made jams. The desserts are available for takeout, delivery, or pick-up, made fresh daily.",
-        "cleaned_content": "# Crumbl Cookies Menu - Week of June 16-21\n\n## National Flavors\n\n### Semi-Sweet Chocolate Chunk Cookie\nA delicious cookie filled with irresistible semi-sweet chocolate chunks and a sprinkle of flaky sea salt.\n\n### Peanut Butter Cup Skillet Cookie (ft. REESE'S)\nA peanut butter cookie topped with Peanut Butter Cup mousse, drizzled with melted milk chocolate, and topped with more Peanut Butter Cup pieces.\n\n### Berry Trifle Cake Cup\nLayers of light vanilla cake, vanilla pudding, and house-made mixed berry jam served in a cup. Not available in mini sizes.\n\n### Wedding Cake Cookie\nA warm vanilla bean sugar cookie topped with an elegant swirl of vanilla and raspberry cream cheese frosting and a light crunch of white chocolate pearls.\n\n### Chocolate Toffee Cake Cookie (ft. HEATH)\nA gooey chocolate cake-inspired cookie layered with fluffy whipped cream, milky caramel glaze, and crunchy HEATH pieces.\n\n### Cinnamon Roll Cookie\nA vanilla sugar cookie topped with cinnamon streusel and swirled with vanilla cream cheese frosting.\n\n### Triple Chocolate Chip Cookie\nA chocolate cookie packed with semi-sweet chunks, creamy white chips, and milk chocolate chips.\n\nAll desserts are made with real ingredients like eggs, butter, sugar, and house-made jams, ensuring fresh and flavorful treats daily.",
-        "content_type": "Menu",
-        "metadata": {
-            "flavors": [
-                "Semi-Sweet Chocolate Chunk Cookie",
-                "Peanut Butter Cup Skillet Cookie",
-                "Berry Trifle Cake Cup",
-                "Wedding Cake Cookie",
-                "Chocolate Toffee Cake Cookie",
-                "Cinnamon Roll Cookie",
-                "Triple Chocolate Chip Cookie"
-            ],
-            "availability": "Week of June 16-21",
-            "ingredients": [
-                "real eggs",
-                "butter",
-                "sugar",
-                "flour",
-                "house-made jams"
-            ],
-            "brand_collaborations": [
-                "REESE'S",
-                "HEATH"
-            ]
-        },
-        "title": "Crumbl Cookies Menu - National Flavors",
-        "section": "Bakery Menu"
-    },
-    {
-        "summarized_content": "The Crumbl merchandise homepage features a Father's Day collection, highlighting new products like Crumbl Dad Things Socks, Crumbl Trail Snapback, and Mom Club Crewneck. The page emphasizes limited-time offers, such as ordering by June 4 to receive items in time for Father's Day celebrations. Additional featured items include Pink Comfort Slippers, Crumbl Lapel Pin Set, and Pastel Comfort Lounge Shorts. The 'All Merch' section showcases a broader range of products, from apparel to accessories like the Insulated Crumblr and Crumbl Dessert Keychains. The page is designed to promote seasonal and limited-edition merchandise.",
-        "cleaned_content": "# The Father’s Day Merch Drop is Live!\n\n**Order your Father’s Day merch by Jun 4 and get it in time for the celebrations!**\n\n[View the Collection](https://merch.crumbl.com/collections/fathers-day)\n\n## What's New\n\n### Crumbl Dad Things Socks\nRegular price: $10.00\n\n### Crumbl Trail Snapback\nRegular price: $25.00\n\n### Mom Club Crewneck\nRegular price: $70.00\n\n### Pink Comfort Slippers\nRegular price: $15.00\n\n### Crumbl Lapel Pin Set\nRegular price: $18.00\n\n### Pastel Comfort Lounge Shorts\nRegular price: $35.00\n\n### Pastel Comfort Crewneck\nRegular price: $40.00\n\n### Apron & Oven Mitt Set\nRegular price: $45.00\n\n## All Merch\n\n### Crumbl Dad Things Socks\nRegular price: $10.00\n\n### Crumbl Trail Snapback\nRegular price: $25.00\n\n### Dadcrew Tee\nRegular price: $30.00 (Sold out)\n\n### Mom Club Crewneck\nRegular price: $70.00\n\n### Pink Comfort Slippers\nRegular price: $15.00\n\n### Crumbl Lapel Pin Set\nRegular price: $18.00\n\n### Pastel Comfort Lounge Shorts\nRegular price: $35.00\n\n### Pastel Comfort Crewneck\nRegular price: $40.00\n\n### Apron & Oven Mitt Set\nRegular price: $45.00\n\n### Pink Insulated Water Bottle\nRegular price: $25.00\n\n### Crumbl Everyday Backpack\nRegular price: $40.00\n\n### Insulated Crumblr\nRegular price: $35.00\n\n### Crumbl Dessert Keychains\nRegular price: $5.00\n\n### Crumbl® Minky Couture® Blanket\nRegular price: $150.00\n\n### Crumbl Pink Box Keychain\nRegular price: $5.00",
-        "content_type": "Product Collection",
-        "metadata": {
-            "keywords": [
-                "Father's Day",
-                "merchandise",
-                "limited edition",
-                "seasonal"
-            ],
-            "products": [
-                "Crumbl Dad Things Socks",
-                "Crumbl Trail Snapback",
-                "Mom Club Crewneck",
-                "Pink Comfort Slippers",
-                "Crumbl Lapel Pin Set",
-                "Pastel Comfort Lounge Shorts",
-                "Pastel Comfort Crewneck",
-                "Apron & Oven Mitt Set",
-                "Pink Insulated Water Bottle",
-                "Crumbl Everyday Backpack",
-                "Insulated Crumblr",
-                "Crumbl Dessert Keychains",
-                "Crumbl® Minky Couture® Blanket",
-                "Crumbl Pink Box Keychain"
-            ]
-        },
-        "title": "Father’s Day Merch Drop",
-        "section": "Bakery Merchandise"
-    }
-]
+        batch_scrape_result = self.scrape_websites(ingestion)
+        cleaned_data = self.firecrawl_cleaner(ingestion, batch_scrape_result)
+        generated_data = self.generate_data_for_ingestion(cleaned_data, ingestion)
         data = self.embed_inputs(generated_data)
         return data
     
@@ -207,6 +152,7 @@ class IngestionService:
     def save_scraped_data(self, ingestion: Ingestion, scraped_data: dict):
         generated_data = self.ingest_data(ingestion)
         self.upsert_in_pinecone(generated_data)
+        return generated_data
 
     def upsert_in_pinecone(self, data: dict):
         try:
