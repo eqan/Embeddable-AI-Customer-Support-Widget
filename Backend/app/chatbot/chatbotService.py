@@ -88,7 +88,7 @@ class ChatbotService:
         """Call Gemini LLM with retries and return validated response."""
         model_name = settings.model_name or "gemini-2.0-flash"
 
-        prompt = load_prompt("response-generation.prompt")
+        prompt = load_prompt("response-generation")
         print("prompt", prompt)
         prompt = prompt.replace("{website_url}", chatbot_request.website_url)
         prompt = prompt.replace("{message}", chatbot_request.message)
