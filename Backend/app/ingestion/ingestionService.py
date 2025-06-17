@@ -2,6 +2,7 @@ from ingestion.dtos.ingestion import Ingestion
 from config.config import firecrawl_app, vo, settings
 from ingestion.dtos.ingestion import WebsiteScrapeResult
 from prompts.load_prompt import load_prompt
+import concurrent.futures
 
 class IngestionService:
     def scrape_websites(self, ingestion: Ingestion) -> any:
@@ -76,15 +77,20 @@ class IngestionService:
     
     def generate_data_for_ingestion(self, list_of_data: [WebsiteScrapeResult]):
         generated_data = []
-        for data in list_of_data:
-            print(data)
+
+        def process_data(data):
             prompt = load_prompt("data-generation-for-ingestion")
             prompt = prompt.replace("{markdown}", data.get('markdown'))
             prompt = prompt.replace("{description}", data.get('description'))
             prompt = prompt.replace("{title}", data.get('title'))
             prompt = prompt.replace("{url}", data.get('url'))
             response = self.deep_seek_api_call(prompt)
-            generated_data.append(response.get('choices')[0].get('message').get('content'))
+            return response.get('choices')[0].get('message').get('content')
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            results = list(executor.map(process_data, list_of_data))
+
+        generated_data.extend(results)
         return generated_data
 
     def ingest_data(self, ingestion: Ingestion):
