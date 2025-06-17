@@ -3,7 +3,7 @@ from config.config import firecrawl_app, vo, settings
 from ingestion.dtos.ingestion import WebsiteScrapeResult
 
 class IngestionService:
-    def scrape_websites(self, ingestion: Ingestion):
+    def scrape_websites(self, ingestion: Ingestion) -> any:
         batch_scrape_result = firecrawl_app.batch_scrape_urls(
             ingestion.relevant_links_to_be_scraped, formats=["markdown"]
         )
@@ -17,7 +17,7 @@ class IngestionService:
         print(batch_scrape_result)
         return batch_scrape_result
     
-    def firecrawl_cleaner(self, ingestion: Ingestion, batch_scrape_result: any):
+    def firecrawl_cleaner(self, ingestion: Ingestion, batch_scrape_result: any) -> [WebsiteScrapeResult]:
         cleaned_data = []
         data = batch_scrape_result.get('data', [])
 
@@ -55,6 +55,9 @@ class IngestionService:
                 )
             )
         return cleaned_data
+    
+    def generate_data_for_ingestion(data: [WebsiteScrapeResult]):
+        return None
 
     def ingest_data(self, ingestion: Ingestion):
         batch_scrape_result = self.scrape_websites(ingestion)
