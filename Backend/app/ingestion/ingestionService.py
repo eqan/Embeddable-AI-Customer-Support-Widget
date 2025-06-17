@@ -1,6 +1,7 @@
 from ingestion.dtos.ingestion import Ingestion
 from config.config import firecrawl_app, collection
 from typing import JSON
+from config.config import vo, embedding_model
 
 class IngestionService:
     def ingest_data(self, ingestion: Ingestion):
