@@ -31,3 +31,5 @@ class Settings(BaseSettings):
         env_file=os.path.join(os.path.dirname(__file__), "../../.env"),
         extra="allow",
     )
+
+settings = Settings()

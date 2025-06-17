@@ -3,7 +3,6 @@ from slowapi.util import get_remote_address
 from config.settings import Settings
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from astrapy import DataAPIClient
 from firecrawl import FirecrawlApp
 import voyageai
 
@@ -62,10 +61,6 @@ engine = create_engine(
 
 # Create a session
 Session = sessionmaker(bind=engine)
-
-
-# connect to a database
-database = DataAPIClient(settings.astra_db_client_secret).get_database(settings.astra_db_api_endpoint)
 
 vo = voyageai.Client(api_key=settings.voyage_api_key)
 

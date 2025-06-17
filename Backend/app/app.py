@@ -8,13 +8,11 @@ from ingestion.ingestionController import router as ingestion_router
 from config.config import limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
-from config.settings import Settings
+from config.settings import settings
 from database import create_tables
 from stats.scheduler import scheduler
 import uvicorn
 import sentry_sdk
-
-settings = Settings()
 
 app = FastAPI()
 
