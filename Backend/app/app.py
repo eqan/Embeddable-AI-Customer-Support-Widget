@@ -4,6 +4,7 @@ from chatbot.chatbotController import router as chatbot_router
 from users.usersController import router as user_router
 from stats.statsController import router as stats_router
 from ticket.ticketController import router as ticket_router
+from ingestion.ingestionController import router as ingestion_router
 from config.config import limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
@@ -43,6 +44,7 @@ app.include_router(chatbot_router)
 app.include_router(user_router)
 app.include_router(stats_router)
 app.include_router(ticket_router)
+app.include_router(ingestion_router)
 
 @app.get("/")
 async def root():
