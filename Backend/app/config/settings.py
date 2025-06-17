@@ -20,12 +20,13 @@ class Settings(BaseSettings):
     algorithm: str = os.getenv("ALGORITHM")
     access_token_expire_days: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_DAYS"))
     sentry_dsn: str = os.getenv("SENTRY_DSN")
-    astra_db_client_secret: str = os.getenv("ASTRA_CS")
-    astra_db_api_endpoint: str = os.getenv("ASTRA_DB_ENDPOINT")
     firecrawl_api_key: str = os.getenv("FIRECRAWL")
     voyage_api_key: str = os.getenv("VOYAGE_API_KEY")
     embedding_model: str = os.getenv("EMBEDDING_MODEL")
     reasoning_model_api_key: str = os.getenv("REASONING_MODEL_API_KEY")
+    pinecone_index_name: str = os.getenv("PINECONE_INDEX_NAME")
+    pinecone_api_key: str = os.getenv("PINECONE_API_KEY")
+    pinecone_host: str = os.getenv("PINECONE_HOST")
     
     model_config = SettingsConfigDict(
         env_file=os.path.join(os.path.dirname(__file__), "../../.env"),

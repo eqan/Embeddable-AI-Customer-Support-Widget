@@ -5,6 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from firecrawl import FirecrawlApp
 import voyageai
+from pinecone import Pinecone
 
 settings = Settings()
 
@@ -65,3 +66,7 @@ Session = sessionmaker(bind=engine)
 vo = voyageai.Client(api_key=settings.voyage_api_key)
 
 firecrawl_app = FirecrawlApp(api_key=settings.firecrawl_api_key)
+
+
+pc = Pinecone(api_key=settings.pinecone_api_key)
+index = pc.Index(host=settings.pinecone_host)
