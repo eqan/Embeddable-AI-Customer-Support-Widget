@@ -108,6 +108,7 @@ class ChatbotService:
         prompt = prompt.replace("{message}", chatbot_request.message)
         prompt = prompt.replace("{website_description}", chatbot_request.website_description)
         prompt = prompt.replace("{relevant_content}", relevant_content)
+        print("relevant_content", relevant_content)
 
         # Build the request payload with Google Search grounding
         endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={settings.model_api_key}"
