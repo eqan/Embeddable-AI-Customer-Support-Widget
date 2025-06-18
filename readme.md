@@ -5,7 +5,7 @@ This document details the completed work for the Embeddable AI Customer Support 
 ## Loom Demo Videos
 
 - [Demo Video 1](https://www.loom.com/share/043d8422b38e4b658230b7011a29049f?sid=ece64777-9ed4-428a-9ffc-d4fe0af53c29)
-- [Demo Video 2](https://www.loom.com/share/043d8422b38e4b658230b7011a29049f?sid=ece64777-9ed4-428a-9ffc-d4fe0af53c29)
+- [Demo Video 2](https://www.loom.com/share/01cc62d68faf4057a997bf4e0c34ff46?sid=5fa53dbc-3f7d-433f-8647-e1321d5382b2)
 - [Demo Video 3](https://www.loom.com/share/503870836f474ad9aecf4e06ff4b425a?sid=4668a988-bef3-4f45-a152-3be41908198d)
 - [Demo Video 4](https://www.loom.com/share/74b407385e2b40e282fea9176f37d496?sid=3ce0fdf5-d610-4bfb-b338-130f692a596e)
 
