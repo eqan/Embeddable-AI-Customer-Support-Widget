@@ -1,17 +1,17 @@
 from fastapi import APIRouter
 from ingestion.dtos.ingestion import Ingestion, SearchDTO
-from ingestion.ingestionService import ingestionService
+from ingestion.ingestionService import ingestion_service
 
 router = APIRouter(prefix="/ingestion")
 
 @router.post("/", tags=["ingestion"])
 async def ingest_data(ingestion: Ingestion):
-    return ingestionService.ingest_data(ingestion)
+    return ingestion_service.ingest_data(ingestion)
 
 @router.post("/scrape-website", tags=["ingestion"])
 async def scrape_website(ingestion: Ingestion):
-    return ingestionService.scrape_and_ingest_data(ingestion)
+    return ingestion_service.scrape_and_ingest_data(ingestion)
 
 @router.get("/search", tags=["ingestion"])
 async def search_in_pinecone(searchDTO: SearchDTO):
-    return ingestionService.search_in_pinecone(searchDTO)
+    return ingestion_service.search_in_pinecone(searchDTO)

@@ -240,5 +240,4 @@ class IngestionService:
             raise HTTPException(status_code=500, detail=str(e))
 
 
-# Create a shared instance that can be imported elsewhere (e.g. the controller)
-ingestionService = IngestionService()
+ingestion_service = IngestionService()

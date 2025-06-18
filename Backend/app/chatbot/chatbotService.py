@@ -14,6 +14,8 @@ from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
 import uuid
 from ticket.dtos.ticket import TicketCreate
+from ingestion.dtos.ingestion import SearchDTO
+from ingestion.ingestionService import ingestion_service
 
 # Singleton-like settings instance (can be shared across class instances)
 settings = Settings()
@@ -87,12 +89,26 @@ class ChatbotService:
     async def generate_result(self, chatbot_request: ChatbotRequest, user_id: int) -> ChatbotResponse:
         """Call Gemini LLM with retries and return validated response."""
         model_name = settings.model_name or "gemini-2.0-flash"
+        
+        relevant_content = ""
+        try:
+            data = ingestion_service.search_in_pinecone(SearchDTO(query=chatbot_request.message, company_website=chatbot_request.website_url, top_k=4))
+            i = 0
+            for match in data["matches"]:
+                try:
+                    relevant_content += f"Entry {i}: Title: {match["metadata"]["title"]} Content Type: {match["metadata"]["content_type"]} Section: {match["metadata"]["section"]} Source URL: {match["metadata"]["source_url"]} Content: {match["metadata"]["cleaned_content"]} Metadata: {match["metadata"]["specific_metadata"]}\n\n"
+                    i += 1
+                except Exception as e:
+                    print(f"Error getting transcript: {e}")
+        except Exception as e:
+            print("Error coming in:", e)
 
         prompt = load_prompt("response-generation")
         print("prompt", prompt)
         prompt = prompt.replace("{website_url}", chatbot_request.website_url)
         prompt = prompt.replace("{message}", chatbot_request.message)
         prompt = prompt.replace("{website_description}", chatbot_request.website_description)
+        prompt = prompt.replace("{relevant_content}", relevant_content)
 
         # Build the request payload with Google Search grounding
         endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={settings.model_api_key}"

@@ -6,6 +6,8 @@ Company Description: {website_description}
 
 Latest customer message: {message}
 
+Relevant Content: {relevant_content}
+
 When crafting your reply, follow these rules (execute them in order):
 1. **Ground your answer.** Rely on the website/company docs. If a fact is missing, you may call the Google Search tool to fetch real-time information—**but never to decide the intent flags**.
 
