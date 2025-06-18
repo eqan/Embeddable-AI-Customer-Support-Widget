@@ -104,7 +104,6 @@ class ChatbotService:
             print("Error coming in:", e)
 
         prompt = load_prompt("response-generation")
-        print("prompt", prompt)
         prompt = prompt.replace("{website_url}", chatbot_request.website_url)
         prompt = prompt.replace("{message}", chatbot_request.message)
         prompt = prompt.replace("{website_description}", chatbot_request.website_description)
