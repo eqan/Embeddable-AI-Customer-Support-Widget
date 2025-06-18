@@ -1,6 +1,6 @@
 from ingestion.dtos.ingestion import Ingestion
 from config.config import firecrawl_app, vo, settings
-from ingestion.dtos.ingestion import WebsiteScrapeResult
+from ingestion.dtos.ingestion import WebsiteScrapeResult, SearchDTO
 from prompts.load_prompt import load_prompt
 import concurrent.futures
 import json
@@ -112,6 +112,7 @@ class IngestionService:
                 parsed['source_url'] = url
                 parsed['company_name'] = ingestion.company_name
                 parsed['company_website'] = ingestion.company_website
+                parsed['specific_metadata'] = json.dumps(parsed['specific_metadata'])
                 print("Parsed", parsed)
                 return parsed
             except json.JSONDecodeError as e:
@@ -180,7 +181,7 @@ class IngestionService:
           print("Error in embedding model", str(e))
           return False
 
-    def save_scraped_data(self, ingestion: Ingestion, scraped_data: dict):
+    def scrape_and_ingest_data(self, ingestion: Ingestion):
         generated_data = self.ingest_data(ingestion)
         self.upsert_in_pinecone(generated_data)
         return generated_data
@@ -202,26 +203,32 @@ class IngestionService:
                 ids_list.append(id)
         return ids_list
 
-    def search_in_pinecone(self, query: str, top_k: int = 3) -> dict:
+    def search_in_pinecone(self, search_dto: SearchDTO) -> dict:
         try:
             print("I'm here at embedding")
-            embedding = self.embed_text(query)
+            embedding = self.embed_text(search_dto.query)
             results = None
             if embedding:
                 results = index.query(
                     namespace=settings.pinecone_index_name,
                     vector=embedding,
-                    top_k=top_k,
-                    include_metadata=True
+                    top_k=search_dto.top_k,
+                    include_metadata=True,
+                    filter={
+                        "company_website": {"$eq": search_dto.company_website}
+                    }
                 )
             else:
                results = index.search(
                     namespace=settings.pinecone_index_name,
                     query={
                         "inputs":{
-                                "text": query,
+                                "text": search_dto.query,
                         },
-                        "top_k": top_k,
+                        "top_k": search_dto.top_k,
+                        "filter": {
+                                "company_website": search_dto.company_website
+                        },
                         "include_metadata": True
                     }
                 ) 

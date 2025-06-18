@@ -11,6 +11,11 @@ class WebsiteScrapeResult(BaseModel):
     description: str #ogDescription
     title: str #ogTitle
 
+class SearchDTO(BaseModel):
+    query: str
+    company_website: str
+    top_k: int = 3
+
 class IngestionData(BaseModel):
     content: str = Field(..., description="The actual text content")
     summarized_content: str = Field("", description="Summarized content of the chunk")
