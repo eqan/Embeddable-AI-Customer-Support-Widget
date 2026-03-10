@@ -33,7 +33,7 @@ async def chatbot_response(chatbot_request: ChatbotRequest, request: Request):
     try:
         user_id = await users_service.verify_jwt_token_for_chatbot(request)
         if user_id is None:
-        	raise HTTPException(status_code=400, detail="User is blacklisted")
+            raise HTTPException(status_code=400, detail="User is blacklisted")
         # Only accept connection if token is valid and request body was successfully parsed
         return await chatbot_service.generate_result(chatbot_request, user_id)
     except HTTPException as e:      # propagate real HTTP errors
