@@ -1,0 +1,114 @@
+{
+  "suite": "Authentication & Token Verification",
+  "description": "Tests for Google login (POST /google-login) and JWT verification (GET /verify-token)",
+  "module": "auth",
+  "tests": [
+    {
+      "name": "google_login_missing_code",
+      "description": "POST /google-login with empty code should return 422 validation error",
+      "input": {
+        "method": "POST",
+        "endpoint": "/google-login",
+        "body": {}
+      },
+      "expected": {
+        "status_code": 422
+      },
+      "assertions": {
+        "type": "validation_error"
+      },
+      "skip": false
+    },
+    {
+      "name": "google_login_invalid_code",
+      "description": "POST /google-login with an invalid Google auth code should fail",
+      "input": {
+        "method": "POST",
+        "endpoint": "/google-login",
+        "body": {
+          "code": "invalid_google_auth_code_12345"
+        }
+      },
+      "expected": {
+        "status_code_in": [400, 500]
+      },
+      "assertions": {
+        "type": "auth_failure"
+      },
+      "skip": false
+    },
+    {
+      "name": "verify_token_no_header",
+      "description": "GET /verify-token without Authorization header should return 401",
+      "input": {
+        "method": "GET",
+        "endpoint": "/verify-token",
+        "headers": {}
+      },
+      "expected": {
+        "status_code": 401
+      },
+      "assertions": {
+        "type": "auth_failure"
+      },
+      "skip": false
+    },
+    {
+      "name": "verify_token_invalid_token",
+      "description": "GET /verify-token with an invalid JWT should return 401",
+      "input": {
+        "method": "GET",
+        "endpoint": "/verify-token",
+        "headers": {
+          "Authorization": "Bearer invalid.jwt.token"
+        }
+      },
+      "expected": {
+        "status_code": 401
+      },
+      "assertions": {
+        "type": "auth_failure"
+      },
+      "skip": false
+    },
+    {
+      "name": "verify_token_malformed_header",
+      "description": "GET /verify-token with malformed Authorization header (no Bearer prefix) should return 401",
+      "input": {
+        "method": "GET",
+        "endpoint": "/verify-token",
+        "headers": {
+          "Authorization": "just-a-raw-token-no-bearer"
+        }
+      },
+      "expected": {
+        "status_code": 401
+      },
+      "assertions": {
+        "type": "auth_failure"
+      },
+      "skip": false
+    },
+    {
+      "name": "verify_token_valid_token",
+      "description": "GET /verify-token with a valid JWT from persistent-users.json should return 200",
+      "input": {
+        "method": "GET",
+        "endpoint": "/verify-token",
+        "use_auth": true
+      },
+      "expected": {
+        "status_code": 200,
+        "has_field": "status",
+        "field_equals": {
+          "status": true
+        }
+      },
+      "assertions": {
+        "type": "token_verified"
+      },
+      "skip": false,
+      "tags": ["requires_token"]
+    }
+  ]
+}

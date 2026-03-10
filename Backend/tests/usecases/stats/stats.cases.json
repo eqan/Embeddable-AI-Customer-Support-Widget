@@ -1,0 +1,94 @@
+{
+  "suite": "Conversation Statistics",
+  "description": "Tests for POST /stats (generate) and GET /stats (retrieve) endpoints",
+  "module": "stats",
+  "tests": [
+    {
+      "name": "generate_stats_no_auth",
+      "description": "POST /stats without auth token should return 400 or 422",
+      "input": {
+        "method": "POST",
+        "endpoint": "/stats",
+        "body": {},
+        "no_auth": true
+      },
+      "expected": {
+        "status_code_in": [400, 422]
+      },
+      "assertions": {
+        "type": "auth_failure"
+      },
+      "skip": false
+    },
+    {
+      "name": "get_stats_no_auth",
+      "description": "GET /stats without auth token should return 400 or 422",
+      "input": {
+        "method": "GET",
+        "endpoint": "/stats",
+        "no_auth": true
+      },
+      "expected": {
+        "status_code_in": [400, 422]
+      },
+      "assertions": {
+        "type": "auth_failure"
+      },
+      "skip": false
+    },
+    {
+      "name": "generate_stats_with_auth",
+      "description": "POST /stats with valid auth should generate and return stats",
+      "input": {
+        "method": "POST",
+        "endpoint": "/stats",
+        "body": {},
+        "use_auth": true
+      },
+      "expected": {
+        "status_code": 200
+      },
+      "assertions": {
+        "type": "stats_structure"
+      },
+      "skip": false,
+      "tags": ["requires_token"]
+    },
+    {
+      "name": "get_stats_with_auth",
+      "description": "GET /stats with valid auth should return stats or null",
+      "input": {
+        "method": "GET",
+        "endpoint": "/stats",
+        "use_auth": true
+      },
+      "expected": {
+        "status_code": 200
+      },
+      "assertions": {
+        "type": "stats_or_null"
+      },
+      "skip": false,
+      "tags": ["requires_token"]
+    },
+    {
+      "name": "generate_stats_invalid_token",
+      "description": "POST /stats with invalid token should return 400",
+      "input": {
+        "method": "POST",
+        "endpoint": "/stats",
+        "body": {
+          "token": "invalid.jwt.garbage"
+        },
+        "no_auth": true
+      },
+      "expected": {
+        "status_code": 400
+      },
+      "assertions": {
+        "type": "auth_failure"
+      },
+      "skip": false
+    }
+  ]
+}

@@ -1,0 +1,136 @@
+{
+  "suite": "Your Test Suite Name",
+  "description": "Description of what this test suite covers",
+  "platform": "ionq",
+  "mode": "simulator",
+  "tests": [
+    {
+      "name": "basic_test_case",
+      "description": "Description of what this specific test case validates",
+      "input": {
+        "code": "circuit = Circuit().h(0).cnot(0, 1)",
+        "shots": 1000,
+        "use_simulator": true,
+        "poll_timeout_seconds": 0
+      },
+      "expected": {
+        "status_code": 200,
+        "simulation_mode": true,
+        "device_arn": "local-simulator",
+        "status": "COMPLETED",
+        "has_measurements": true,
+        "success": true
+      },
+      "assertions": {
+        "type": "custom",
+        "tolerance": 0.1
+      },
+      "skip": false
+    },
+    {
+      "name": "bell_state_example",
+      "description": "Example Bell state entanglement test",
+      "input": {
+        "code": "circuit = Circuit().h(0).cnot(0, 1)",
+        "shots": 1000,
+        "use_simulator": true
+      },
+      "expected": {
+        "status_code": 200,
+        "simulation_mode": true,
+        "status": "COMPLETED",
+        "has_measurements": true,
+        "check_entanglement": true,
+        "expected_states": ["00", "11"],
+        "qubit_count": 2
+      },
+      "assertions": {
+        "type": "bell_state",
+        "tolerance": 0.1
+      },
+      "skip": false
+    },
+    {
+      "name": "deterministic_circuit_example",
+      "description": "Example deterministic circuit (no superposition)",
+      "input": {
+        "code": "circuit = Circuit().x(0).x(1).x(2)",
+        "shots": 100,
+        "use_simulator": true
+      },
+      "expected": {
+        "status_code": 200,
+        "simulation_mode": true,
+        "status": "COMPLETED",
+        "has_measurements": true,
+        "expected_states": ["111"]
+      },
+      "assertions": {
+        "type": "deterministic",
+        "expected_state": "111"
+      },
+      "skip": false
+    },
+    {
+      "name": "slow_test_example",
+      "description": "Example of a slow test that can be skipped with -m 'not slow'",
+      "input": {
+        "code": "circuit = Circuit().h(0).cnot(0, 1)",
+        "shots": 10000,
+        "use_simulator": true
+      },
+      "expected": {
+        "status_code": 200,
+        "simulation_mode": true,
+        "status": "COMPLETED"
+      },
+      "skip": false,
+      "tags": ["slow"]
+    },
+    {
+      "name": "skipped_test_example",
+      "description": "Example of a skipped test (e.g., not yet implemented)",
+      "input": {
+        "code": "circuit = Circuit().h(0)",
+        "shots": 100,
+        "use_simulator": true
+      },
+      "expected": {
+        "status_code": 200
+      },
+      "skip": true,
+      "skip_reason": "Feature not yet implemented"
+    },
+    {
+      "name": "error_case_example",
+      "description": "Example test expecting an error response",
+      "input": {
+        "code": "invalid_code_here",
+        "shots": 100,
+        "use_simulator": true
+      },
+      "expected": {
+        "status_code": 400,
+        "success": false,
+        "has_error": true
+      },
+      "skip": false
+    },
+    {
+      "name": "execution_time_test",
+      "description": "Example test with execution time constraint",
+      "input": {
+        "code": "circuit = Circuit().h(0)",
+        "shots": 100,
+        "use_simulator": true
+      },
+      "expected": {
+        "status_code": 200,
+        "status": "COMPLETED",
+        "max_execution_time": 1.0
+      },
+      "skip": false
+    }
+  ]
+}
+

@@ -1,0 +1,257 @@
+{
+  "suite": "Chatbot Response & Chat History",
+  "description": "Tests for POST /chatbot-response and GET /all-chats endpoints",
+  "module": "chatbot",
+  "tests": [
+    {
+      "name": "chatbot_missing_token",
+      "description": "POST /chatbot-response without a token field should return 400",
+      "input": {
+        "method": "POST",
+        "endpoint": "/chatbot-response",
+        "body": {
+          "message": "Hello",
+          "session_id": "test-session-1",
+          "chat_history": [],
+          "website_url": "https://example.com",
+          "website_description": "Test company"
+        }
+      },
+      "expected": {
+        "status_code": 422
+      },
+      "assertions": {
+        "type": "validation_error"
+      },
+      "skip": false
+    },
+    {
+      "name": "chatbot_missing_message",
+      "description": "POST /chatbot-response without message field should return 422",
+      "input": {
+        "method": "POST",
+        "endpoint": "/chatbot-response",
+        "body": {
+          "token": "placeholder",
+          "session_id": "test-session-1",
+          "chat_history": [],
+          "website_url": "https://example.com",
+          "website_description": "Test company"
+        }
+      },
+      "expected": {
+        "status_code": 422
+      },
+      "assertions": {
+        "type": "validation_error"
+      },
+      "skip": false
+    },
+    {
+      "name": "chatbot_missing_session_id",
+      "description": "POST /chatbot-response without session_id should return 422",
+      "input": {
+        "method": "POST",
+        "endpoint": "/chatbot-response",
+        "body": {
+          "message": "Hello",
+          "token": "placeholder",
+          "chat_history": [],
+          "website_url": "https://example.com",
+          "website_description": "Test company"
+        }
+      },
+      "expected": {
+        "status_code": 422
+      },
+      "assertions": {
+        "type": "validation_error"
+      },
+      "skip": false
+    },
+    {
+      "name": "chatbot_empty_body",
+      "description": "POST /chatbot-response with empty body should return 422",
+      "input": {
+        "method": "POST",
+        "endpoint": "/chatbot-response",
+        "body": {}
+      },
+      "expected": {
+        "status_code": 422
+      },
+      "assertions": {
+        "type": "validation_error"
+      },
+      "skip": false
+    },
+    {
+      "name": "chatbot_invalid_token",
+      "description": "POST /chatbot-response with invalid JWT token should return 400",
+      "input": {
+        "method": "POST",
+        "endpoint": "/chatbot-response",
+        "body": {
+          "message": "Hello",
+          "token": "invalid.jwt.token",
+          "session_id": "test-session-1",
+          "chat_history": [],
+          "website_url": "https://example.com",
+          "website_description": "Test company"
+        }
+      },
+      "expected": {
+        "status_code": 400
+      },
+      "assertions": {
+        "type": "auth_failure"
+      },
+      "skip": false
+    },
+    {
+      "name": "chatbot_general_question",
+      "description": "POST /chatbot-response with a general question should return a regular response",
+      "input": {
+        "method": "POST",
+        "endpoint": "/chatbot-response",
+        "body": {
+          "message": "What services does this company provide?",
+          "session_id": "test-general-session",
+          "chat_history": [],
+          "website_url": "https://example.com",
+          "website_description": "Example Corp provides cloud computing and AI solutions"
+        },
+        "use_auth_token": true
+      },
+      "expected": {
+        "status_code": 200,
+        "is_booking": false,
+        "is_human_handoff": false
+      },
+      "assertions": {
+        "type": "regular_response"
+      },
+      "skip": false,
+      "tags": ["external", "slow"]
+    },
+    {
+      "name": "chatbot_booking_request",
+      "description": "POST /chatbot-response asking to book a meeting should set is_booking=true",
+      "input": {
+        "method": "POST",
+        "endpoint": "/chatbot-response",
+        "body": {
+          "message": "I would like to schedule a meeting with your team",
+          "session_id": "test-booking-session",
+          "chat_history": [],
+          "website_url": "https://example.com",
+          "website_description": "Example Corp provides cloud computing and AI solutions"
+        },
+        "use_auth_token": true
+      },
+      "expected": {
+        "status_code": 200,
+        "is_booking": true,
+        "is_human_handoff": false
+      },
+      "assertions": {
+        "type": "booking_response"
+      },
+      "skip": false,
+      "tags": ["external", "slow"]
+    },
+    {
+      "name": "chatbot_human_handoff_request",
+      "description": "POST /chatbot-response asking to speak to a human should set is_human_handoff=true",
+      "input": {
+        "method": "POST",
+        "endpoint": "/chatbot-response",
+        "body": {
+          "message": "I need to speak with a human agent right now please",
+          "session_id": "test-handoff-session",
+          "chat_history": [],
+          "website_url": "https://example.com",
+          "website_description": "Example Corp provides cloud computing and AI solutions"
+        },
+        "use_auth_token": true
+      },
+      "expected": {
+        "status_code": 200,
+        "is_booking": false,
+        "is_human_handoff": true
+      },
+      "assertions": {
+        "type": "handoff_response"
+      },
+      "skip": false,
+      "tags": ["external", "slow"]
+    },
+    {
+      "name": "chatbot_message_too_long",
+      "description": "POST /chatbot-response with message exceeding max_length should return 422",
+      "input": {
+        "method": "POST",
+        "endpoint": "/chatbot-response",
+        "body": {
+          "message": "__GENERATE_LONG_STRING_10001__",
+          "token": "placeholder",
+          "session_id": "test-session-overflow",
+          "chat_history": [],
+          "website_url": "https://example.com",
+          "website_description": "Test company"
+        }
+      },
+      "expected": {
+        "status_code": 422
+      },
+      "assertions": {
+        "type": "validation_error"
+      },
+      "skip": false
+    },
+    {
+      "name": "chatbot_with_chat_history",
+      "description": "POST /chatbot-response with prior chat history should maintain context",
+      "input": {
+        "method": "POST",
+        "endpoint": "/chatbot-response",
+        "body": {
+          "message": "Can you tell me more about that?",
+          "session_id": "test-history-session",
+          "chat_history": [
+            {"role": "user", "content": "What is your pricing?"},
+            {"role": "model", "content": "Our pricing starts at $99/month for the basic plan."}
+          ],
+          "website_url": "https://example.com",
+          "website_description": "Example Corp provides SaaS solutions starting at $99/month"
+        },
+        "use_auth_token": true
+      },
+      "expected": {
+        "status_code": 200,
+        "is_booking": false,
+        "is_human_handoff": false
+      },
+      "assertions": {
+        "type": "regular_response"
+      },
+      "skip": false,
+      "tags": ["external", "slow"]
+    },
+    {
+      "name": "all_chats_invalid_token",
+      "description": "GET /all-chats with invalid token in body should return 400",
+      "input": {
+        "method": "GET",
+        "endpoint": "/all-chats"
+      },
+      "expected": {
+        "status_code_in": [400, 422]
+      },
+      "assertions": {
+        "type": "auth_failure"
+      },
+      "skip": false
+    }
+  ]
+}

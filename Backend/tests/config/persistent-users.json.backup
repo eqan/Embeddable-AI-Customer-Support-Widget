@@ -1,0 +1,46 @@
+{
+  "_comment": "Persistent test users - DO NOT delete these users from the database",
+  "_note": "These users should NOT have 'test' in their username/email to avoid automated cleanup",
+  "_warning": "Update credentials here if you recreate these users",
+  "users": {
+    "primary": {
+      "full_name": "QA Primary User",
+      "email": "qa.primary.user@superq.dev",
+      "username": "qa_primary_user",
+      "password": "3KE6{tHph$8q_pF{SQ}9aa9Zv}XHW3gK",
+      "customer_id": "f4606216-ede9-4084-a94a-86b41379a628",
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjdXN0b21lcl9pZCI6ImY0NjA2MjE2LWVkZTktNDA4NC1hOTRhLTg2YjQxMzc5YTYyOCIsImVtYWlsIjoicWEucHJpbWFyeS51c2VyQHN1cGVycS5kZXYiLCJyZWdpb24iOiJDSEFUUVBVIiwicGxhdGZvcm0iOiJTVVBFUiIsInVzZXJfdHlwZSI6InJlZ3VsYXIiLCJpc19zdXBlcmh1Yl9hY2NvdW50IjpmYWxzZSwiY29kZV9lZGl0b3JfZW5hYmxlZCI6dHJ1ZSwibWFjaGluZV9maW5nZXJwcmludCI6bnVsbCwiaWF0IjoxNzcwOTc2NzE2LCJleHAiOjE3NzA5ODAzMTZ9.ykbQYgHLzKL4BPtNT2i2f8JqVnPXp52dUj4LzLY0wEg",
+      "organization": "SuperQ QA",
+      "country": "EU",
+      "platform": "CHAT_QPU",
+      "description": "Primary persistent user for most test modules"
+    },
+    "secondary": {
+      "full_name": "QA Secondary User",
+      "email": "qa.secondary.user@superq.dev",
+      "username": "qa_secondary_user",
+      "password": "?]S}59}oNgt?9$>fgr4m!9_S]wn&2Ng;",
+      "customer_id": "6d072844-92b9-4724-b663-f42060d0a7db",
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjdXN0b21lcl9pZCI6IjZkMDcyODQ0LTkyYjktNDcyNC1iNjYzLWY0MjA2MGQwYTdkYiIsImVtYWlsIjoicWEuc2Vjb25kYXJ5LnVzZXJAc3VwZXJxLmRldiIsInJlZ2lvbiI6IkNIQVRRUFUiLCJwbGF0Zm9ybSI6IlNVUEVSIiwidXNlcl90eXBlIjoicmVndWxhciIsImlzX3N1cGVyaHViX2FjY291bnQiOmZhbHNlLCJjb2RlX2VkaXRvcl9lbmFibGVkIjp0cnVlLCJtYWNoaW5lX2ZpbmdlcnByaW50IjpudWxsLCJpYXQiOjE3NzA5NzY3MTYsImV4cCI6MTc3MDk4MDMxNn0.HDpYWCGD4fCMrwgh4o6ALLtQapMiWMwp8j7xQDl2YU0",
+      "organization": "SuperQ QA",
+      "country": "EU",
+      "platform": "CHAT_QPU",
+      "description": "Secondary persistent user for tests requiring multiple users"
+    },
+    "premium": {
+      "full_name": "QA Premium User",
+      "email": "qa.premium.user@superq.dev",
+      "username": "qa_premium_user",
+      "password": "pP^+|or(Rf{7?^RfC{p)y1[deY4k@B<b",
+      "customer_id": "0c61884f-26b5-4254-a344-48ea9d4ab576",
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjdXN0b21lcl9pZCI6IjBjNjE4ODRmLTI2YjUtNDI1NC1hMzQ0LTQ4ZWE5ZDRhYjU3NiIsImVtYWlsIjoicWEucHJlbWl1bS51c2VyQHN1cGVycS5kZXYiLCJyZWdpb24iOiJDSEFUUVBVIiwicGxhdGZvcm0iOiJTVVBFUiIsInVzZXJfdHlwZSI6InJlZ3VsYXIiLCJpc19zdXBlcmh1Yl9hY2NvdW50IjpmYWxzZSwiY29kZV9lZGl0b3JfZW5hYmxlZCI6dHJ1ZSwibWFjaGluZV9maW5nZXJwcmludCI6bnVsbCwiaWF0IjoxNzcwOTc2NzE2LCJleHAiOjE3NzA5ODAzMTZ9.IANSHdzF9MxDlnTJmM7sFdF3rSPXQUL_lQifeQjPnl4",
+      "organization": "SuperQ QA",
+      "country": "EU",
+      "platform": "CHAT_QPU",
+      "tier": "premium",
+      "description": "Premium tier user for subscription/tier tests"
+    }
+  },
+  "lastUpdated": "2026-02-13T09:58:36.888306+00:00",
+  "setupComplete": true
+}

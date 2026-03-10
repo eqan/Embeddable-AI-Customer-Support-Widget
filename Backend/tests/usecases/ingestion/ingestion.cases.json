@@ -1,0 +1,150 @@
+{
+  "suite": "Data Ingestion & Vector Search",
+  "description": "Tests for POST /ingestion/scrape-website and GET /ingestion/search endpoints",
+  "module": "ingestion",
+  "tests": [
+    {
+      "name": "scrape_no_auth",
+      "description": "POST /ingestion/scrape-website without auth header should return 401",
+      "input": {
+        "method": "POST",
+        "endpoint": "/ingestion/scrape-website",
+        "body": {
+          "company_name": "Test Corp",
+          "company_website": "https://example.com",
+          "relevant_links_to_be_scraped": ["https://example.com/about"]
+        },
+        "no_auth": true
+      },
+      "expected": {
+        "status_code": 401
+      },
+      "assertions": {
+        "type": "auth_failure"
+      },
+      "skip": false
+    },
+    {
+      "name": "scrape_missing_fields",
+      "description": "POST /ingestion/scrape-website with missing required fields should return 422",
+      "input": {
+        "method": "POST",
+        "endpoint": "/ingestion/scrape-website",
+        "body": {
+          "company_name": "Test Corp"
+        },
+        "use_auth": true
+      },
+      "expected": {
+        "status_code": 422
+      },
+      "assertions": {
+        "type": "validation_error"
+      },
+      "skip": false,
+      "tags": ["requires_token"]
+    },
+    {
+      "name": "scrape_empty_body",
+      "description": "POST /ingestion/scrape-website with empty body should return 422",
+      "input": {
+        "method": "POST",
+        "endpoint": "/ingestion/scrape-website",
+        "body": {},
+        "use_auth": true
+      },
+      "expected": {
+        "status_code": 422
+      },
+      "assertions": {
+        "type": "validation_error"
+      },
+      "skip": false,
+      "tags": ["requires_token"]
+    },
+    {
+      "name": "scrape_empty_links_list",
+      "description": "POST /ingestion/scrape-website with empty links list should return 422 or handle gracefully",
+      "input": {
+        "method": "POST",
+        "endpoint": "/ingestion/scrape-website",
+        "body": {
+          "company_name": "Test Corp",
+          "company_website": "https://example.com",
+          "relevant_links_to_be_scraped": []
+        },
+        "use_auth": true
+      },
+      "expected": {
+        "status_code_in": [200, 422, 500]
+      },
+      "assertions": {
+        "type": "status_check"
+      },
+      "skip": false,
+      "tags": ["requires_token"]
+    },
+    {
+      "name": "search_no_auth",
+      "description": "GET /ingestion/search without auth header should return 401",
+      "input": {
+        "method": "GET",
+        "endpoint": "/ingestion/search",
+        "params": {
+          "query": "test",
+          "company_website": "https://example.com"
+        },
+        "no_auth": true
+      },
+      "expected": {
+        "status_code": 401
+      },
+      "assertions": {
+        "type": "auth_failure"
+      },
+      "skip": false
+    },
+    {
+      "name": "search_missing_query",
+      "description": "GET /ingestion/search without query param should return 422",
+      "input": {
+        "method": "GET",
+        "endpoint": "/ingestion/search",
+        "params": {
+          "company_website": "https://example.com"
+        },
+        "use_auth": true
+      },
+      "expected": {
+        "status_code": 422
+      },
+      "assertions": {
+        "type": "validation_error"
+      },
+      "skip": false,
+      "tags": ["requires_token"]
+    },
+    {
+      "name": "search_valid_query",
+      "description": "GET /ingestion/search with valid query should return results or empty",
+      "input": {
+        "method": "GET",
+        "endpoint": "/ingestion/search",
+        "params": {
+          "query": "company services",
+          "company_website": "https://example.com",
+          "top_k": 3
+        },
+        "use_auth": true
+      },
+      "expected": {
+        "status_code_in": [200, 500]
+      },
+      "assertions": {
+        "type": "search_results"
+      },
+      "skip": false,
+      "tags": ["requires_token", "external"]
+    }
+  ]
+}

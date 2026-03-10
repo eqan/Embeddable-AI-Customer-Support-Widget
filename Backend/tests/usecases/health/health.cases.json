@@ -1,0 +1,71 @@
+{
+  "suite": "Health & Root Endpoint",
+  "description": "Tests for the root health-check endpoint (GET /)",
+  "module": "root",
+  "tests": [
+    {
+      "name": "root_endpoint_returns_200",
+      "description": "GET / should return 200 with a running message",
+      "input": {
+        "method": "GET",
+        "endpoint": "/"
+      },
+      "expected": {
+        "status_code": 200,
+        "has_field": "message"
+      },
+      "assertions": {
+        "type": "field_contains",
+        "field": "message",
+        "substring": "running"
+      },
+      "skip": false
+    },
+    {
+      "name": "root_endpoint_returns_json",
+      "description": "GET / response should be valid JSON with Content-Type application/json",
+      "input": {
+        "method": "GET",
+        "endpoint": "/"
+      },
+      "expected": {
+        "status_code": 200,
+        "content_type_contains": "application/json"
+      },
+      "assertions": {
+        "type": "content_type"
+      },
+      "skip": false
+    },
+    {
+      "name": "nonexistent_endpoint_returns_404",
+      "description": "GET /nonexistent should return 404 or 405",
+      "input": {
+        "method": "GET",
+        "endpoint": "/this-does-not-exist"
+      },
+      "expected": {
+        "status_code_in": [404, 405]
+      },
+      "assertions": {
+        "type": "error_status"
+      },
+      "skip": false
+    },
+    {
+      "name": "sentry_debug_endpoint_returns_500",
+      "description": "GET /sentry-debug triggers a division-by-zero and should return 500",
+      "input": {
+        "method": "GET",
+        "endpoint": "/sentry-debug"
+      },
+      "expected": {
+        "status_code": 500
+      },
+      "assertions": {
+        "type": "status_only"
+      },
+      "skip": false
+    }
+  ]
+}

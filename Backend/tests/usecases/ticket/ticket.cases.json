@@ -1,0 +1,108 @@
+{
+  "suite": "Support Ticket CRUD",
+  "description": "Tests for PUT /ticket, GET /ticket/{uuid}, and GET /tickets endpoints",
+  "module": "ticket",
+  "tests": [
+    {
+      "name": "get_ticket_nonexistent_uuid",
+      "description": "GET /ticket/{uuid} with a UUID that does not exist should return null or empty",
+      "input": {
+        "method": "GET",
+        "endpoint": "/ticket/TICKET-00000000-0000-0000-0000-000000000000"
+      },
+      "expected": {
+        "status_code": 200,
+        "body_is_null": true
+      },
+      "assertions": {
+        "type": "null_response"
+      },
+      "skip": false
+    },
+    {
+      "name": "update_ticket_missing_uuid",
+      "description": "PUT /ticket without uuid field should return 422",
+      "input": {
+        "method": "PUT",
+        "endpoint": "/ticket",
+        "body": {
+          "status": "closed"
+        }
+      },
+      "expected": {
+        "status_code": 422
+      },
+      "assertions": {
+        "type": "validation_error"
+      },
+      "skip": false
+    },
+    {
+      "name": "update_ticket_missing_status",
+      "description": "PUT /ticket without status field should return 422",
+      "input": {
+        "method": "PUT",
+        "endpoint": "/ticket",
+        "body": {
+          "uuid": "TICKET-test-uuid"
+        }
+      },
+      "expected": {
+        "status_code": 422
+      },
+      "assertions": {
+        "type": "validation_error"
+      },
+      "skip": false
+    },
+    {
+      "name": "update_ticket_empty_body",
+      "description": "PUT /ticket with empty body should return 422",
+      "input": {
+        "method": "PUT",
+        "endpoint": "/ticket",
+        "body": {}
+      },
+      "expected": {
+        "status_code": 422
+      },
+      "assertions": {
+        "type": "validation_error"
+      },
+      "skip": false
+    },
+    {
+      "name": "get_tickets_no_auth",
+      "description": "GET /tickets without auth should return 400 or 422",
+      "input": {
+        "method": "GET",
+        "endpoint": "/tickets",
+        "no_auth": true
+      },
+      "expected": {
+        "status_code_in": [400, 422]
+      },
+      "assertions": {
+        "type": "auth_failure"
+      },
+      "skip": false
+    },
+    {
+      "name": "get_tickets_with_auth",
+      "description": "GET /tickets with valid auth should return a list (possibly empty)",
+      "input": {
+        "method": "GET",
+        "endpoint": "/tickets",
+        "use_auth": true
+      },
+      "expected": {
+        "status_code": 200
+      },
+      "assertions": {
+        "type": "list_response"
+      },
+      "skip": false,
+      "tags": ["requires_token"]
+    }
+  ]
+}
