@@ -10,11 +10,10 @@ stats_service = StatsService()
 
 async def generate_daily_stats():
     """Generate conversation stats for every user once per day."""
-    db = Session()
     try:
-        user_ids = [row.id for row in db.query(User.id).all()]
+        user_ids = [row.id for row in Session().query(User.id).all()]
     finally:
-        db.close()
+        Session.remove()
 
     for uid in user_ids:
         await stats_service.generate_stats(uid)
