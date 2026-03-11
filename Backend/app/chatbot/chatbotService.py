@@ -1,7 +1,7 @@
 from prompts.load_prompt import load_prompt
 from chatbot.dtos.chatbot import ChatbotRequest
 from config.config import generation_config, Session
-from config.settings import Settings
+from config.settings import settings
 import requests
 import aiohttp
 import json
@@ -17,8 +17,6 @@ import uuid
 from ticket.dtos.ticket import TicketCreate
 from ingestion.dtos.ingestion import SearchDTO
 from ingestion.ingestionService import ingestion_service
-
-settings = Settings()
 
 GEMINI_BASE = (settings.model_api_base_url or "https://generativelanguage.googleapis.com/v1beta").rstrip("/") + "/models"
 

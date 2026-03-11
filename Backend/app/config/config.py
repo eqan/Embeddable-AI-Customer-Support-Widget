@@ -1,13 +1,11 @@
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-from config.settings import Settings
+from config.settings import settings
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 from firecrawl import FirecrawlApp
 import voyageai
 from pinecone import Pinecone
-
-settings = Settings()
 
 # Create a limiter instance with the default rate
 limiter = Limiter(key_func=get_remote_address)

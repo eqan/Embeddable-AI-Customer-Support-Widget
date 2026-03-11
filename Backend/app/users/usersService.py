@@ -2,21 +2,20 @@ import httpx
 import jwt
 from datetime import datetime, timedelta
 from fastapi import Request, HTTPException
-from dotenv import load_dotenv  
-import os
 from users.dtos.schemas import UserCreate
 from users.models.user import User
 from sqlalchemy.exc import SQLAlchemyError
 from config.config import Session
+from config.settings import settings
 from users.models.enums import UserType
-load_dotenv()
+
 class UsersService:
     """Service class that encapsulates all user-related business logic."""
 
     def __init__(self):
-        self.SECRET_KEY = os.getenv("SECRET_KEY")
-        self.ALGORITHM = os.getenv("ALGORITHM")
-        self.ACCESS_TOKEN_EXPIRE_DAYS = int(os.getenv("ACCESS_TOKEN_EXPIRE_DAYS"))
+        self.SECRET_KEY = settings.secret_key
+        self.ALGORITHM = settings.algorithm
+        self.ACCESS_TOKEN_EXPIRE_DAYS = settings.access_token_expire_days
 
     @property
     def db(self):

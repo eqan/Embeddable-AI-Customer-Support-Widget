@@ -1,36 +1,34 @@
-import os
+from pathlib import Path
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from dotenv import load_dotenv
-
-load_dotenv()
 
 
 class Settings(BaseSettings):
     logging_level: str = "WARNING"
-    model_api_key: str = os.getenv("MODEL_API_KEY")
-    model_name: str = os.getenv("MODEL_NAME")
-    model_api_base_url: str = os.getenv("MODEL_API_BASE_URL")
-    allowed_origins: str = os.getenv("ALLOWED_ORIGINS")
-    db_user: str = os.getenv("DB_USER")
-    db_password: str = os.getenv("DB_PASSWORD")
-    db_host: str = os.getenv("DB_HOST")
-    db_name: str = os.getenv("DB_NAME")
-    google_oauth_url: str = os.getenv("GOOGLE_OAUTH_URL")
-    secret_key: str = os.getenv("SECRET_KEY")
-    algorithm: str = os.getenv("ALGORITHM")
-    access_token_expire_days: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_DAYS"))
-    sentry_dsn: str = os.getenv("SENTRY_DSN")
-    firecrawl_api_key: str = os.getenv("FIRECRAWL")
-    voyage_api_key: str = os.getenv("VOYAGE_API_KEY")
-    embedding_model: str = os.getenv("EMBEDDING_MODEL")
-    reasoning_model_api_key: str = os.getenv("REASONING_MODEL_API_KEY")
-    pinecone_index_name: str = os.getenv("PINECONE_INDEX_NAME")
-    pinecone_api_key: str = os.getenv("PINECONE_API_KEY")
-    pinecone_host: str = os.getenv("PINECONE_HOST")
-    
+    model_api_key: str = ""
+    model_name: str = "gemini-2.5-flash"
+    model_api_base_url: str = "https://generativelanguage.googleapis.com/v1beta"
+    allowed_origins: str = "*"
+    db_user: str
+    db_password: str = ""
+    db_host: str = "127.0.0.1"
+    db_name: str
+    google_oauth_url: str = "https://oauth2.googleapis.com/tokeninfo"
+    secret_key: str
+    algorithm: str = "HS256"
+    access_token_expire_days: int = 7
+    sentry_dsn: str = ""
+    firecrawl_api_key: str = Field(default="", validation_alias="FIRECRAWL")
+    voyage_api_key: str = ""
+    embedding_model: str = "voyage-3"
+    reasoning_model_api_key: str = ""
+    pinecone_index_name: str = ""
+    pinecone_api_key: str = ""
+    pinecone_host: str = ""
+
     model_config = SettingsConfigDict(
-        env_file=os.path.join(os.path.dirname(__file__), "../../.env"),
+        env_file=str(Path(__file__).resolve().parent.parent.parent / ".env"),
         extra="allow",
     )
 
