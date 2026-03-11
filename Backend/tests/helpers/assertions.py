@@ -169,3 +169,63 @@ def assert_not_found_or_error(response: Dict[str, Any], message: str = ""):
 def assert_rate_limited(response: Dict[str, Any], message: str = ""):
     """Assert a 429 Too Many Requests response."""
     assert_status_code(response, 429, message)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# SSE Stream Assertions
+# ──────────────────────────────────────────────────────────────────────────────
+
+def parse_sse_events(raw_text: str) -> List[Dict[str, Any]]:
+    """Parse raw SSE text into a list of {event, data} dicts."""
+    events = []
+    for block in raw_text.split("\n\n"):
+        block = block.strip()
+        if not block:
+            continue
+        event_type = ""
+        event_data = ""
+        for line in block.split("\n"):
+            if line.startswith("event: "):
+                event_type = line[7:].strip()
+            elif line.startswith("data: "):
+                event_data = line[6:]
+        if event_type and event_data:
+            import json as _json
+            try:
+                events.append({"event": event_type, "data": _json.loads(event_data)})
+            except _json.JSONDecodeError:
+                events.append({"event": event_type, "data_raw": event_data})
+    return events
+
+
+def assert_sse_has_event(events: List[Dict], event_type: str, message: str = ""):
+    """Assert that at least one SSE event of the given type exists."""
+    found = [e for e in events if e.get("event") == event_type]
+    assert len(found) > 0, f"{message} No '{event_type}' event found in SSE stream"
+    return found
+
+
+def assert_sse_intent(events: List[Dict], expected_intent: str = None, message: str = ""):
+    """Assert the SSE stream contains an intent event, optionally checking its type."""
+    intent_events = assert_sse_has_event(events, "intent", message)
+    if expected_intent:
+        actual = intent_events[0]["data"].get("type")
+        assert actual == expected_intent, \
+            f"{message} Expected intent '{expected_intent}', got '{actual}'"
+    return intent_events[0]
+
+
+def assert_sse_done(events: List[Dict], message: str = ""):
+    """Assert the SSE stream ends with a done event."""
+    done_events = assert_sse_has_event(events, "done", message)
+    data = done_events[-1]["data"]
+    assert "is_booking" in data, f"{message} done event missing 'is_booking'"
+    assert "is_human_handoff" in data, f"{message} done event missing 'is_human_handoff'"
+    return done_events[-1]
+
+
+def assert_sse_stream_valid(events: List[Dict], message: str = ""):
+    """Assert a complete SSE stream has the expected structure (intent first, done last)."""
+    assert len(events) >= 2, f"{message} SSE stream too short ({len(events)} events)"
+    assert events[0]["event"] == "intent", f"{message} First event should be 'intent'"
+    assert events[-1]["event"] == "done", f"{message} Last event should be 'done'"

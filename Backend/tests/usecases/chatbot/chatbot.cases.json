@@ -253,6 +253,63 @@
         "type": "auth_failure"
       },
       "skip": false
+    },
+    {
+      "name": "stream_missing_token",
+      "description": "POST /chatbot-response/stream without token returns 422",
+      "input": {
+        "method": "POST",
+        "endpoint": "/chatbot-response/stream",
+        "body": {
+          "message": "Hello"
+        }
+      },
+      "expected": {
+        "status_code": 422
+      },
+      "assertions": {
+        "type": "validation_error"
+      },
+      "skip": false
+    },
+    {
+      "name": "stream_empty_body",
+      "description": "POST /chatbot-response/stream with empty body returns 422",
+      "input": {
+        "method": "POST",
+        "endpoint": "/chatbot-response/stream",
+        "body": {}
+      },
+      "expected": {
+        "status_code": 422
+      },
+      "assertions": {
+        "type": "validation_error"
+      },
+      "skip": false
+    },
+    {
+      "name": "stream_invalid_token",
+      "description": "POST /chatbot-response/stream with invalid JWT returns 400",
+      "input": {
+        "method": "POST",
+        "endpoint": "/chatbot-response/stream",
+        "body": {
+          "message": "Hello",
+          "token": "invalid.jwt.token",
+          "session_id": "test-stream",
+          "chat_history": [],
+          "website_url": "https://example.com",
+          "website_description": "Test"
+        }
+      },
+      "expected": {
+        "status_code_in": [400, 422]
+      },
+      "assertions": {
+        "type": "auth_failure"
+      },
+      "skip": false
     }
   ]
 }

@@ -3,6 +3,7 @@ from chatbot.dtos.chatbot import ChatbotRequest
 from config.config import generation_config, Session
 from config.settings import Settings
 import requests
+import aiohttp
 import json
 from chatbot.dtos.chatbot_response import ChatbotResponse
 from ticket.ticketService import TicketService
@@ -17,8 +18,9 @@ from ticket.dtos.ticket import TicketCreate
 from ingestion.dtos.ingestion import SearchDTO
 from ingestion.ingestionService import ingestion_service
 
-# Singleton-like settings instance (can be shared across class instances)
 settings = Settings()
+
+GEMINI_BASE = (settings.model_api_base_url or "https://generativelanguage.googleapis.com/v1beta").rstrip("/") + "/models"
 
 class ChatbotService:
     """Service encapsulating all chatbot-related logic including LLM calls and DB ops."""
@@ -246,5 +248,225 @@ class ChatbotService:
             raise HTTPException(status_code=500, detail=str(e))
         finally:
             self.db.close()
+
+    # -------------------------
+    # SSE Streaming Methods
+    # -------------------------
+
+    def _build_history_contents(self, chat_history: list[dict]) -> list[dict]:
+        return [
+            {"role": turn["role"], "parts": [{"text": turn["content"]}]}
+            for turn in chat_history
+        ]
+
+    def _fetch_relevant_content(self, message: str, website_url: str) -> str:
+        relevant_content = ""
+        try:
+            data = ingestion_service.search_in_pinecone(
+                SearchDTO(query=message, company_website=website_url, top_k=4)
+            )
+            for i, match in enumerate(data["matches"]):
+                try:
+                    m = match["metadata"]
+                    relevant_content += (
+                        f"Entry {i}: Title: {m['title']} "
+                        f"Content Type: {m['content_type']} "
+                        f"Section: {m['section']} "
+                        f"Source URL: {m['source_url']} "
+                        f"Content: {m['cleaned_content']} "
+                        f"Metadata: {m['specific_metadata']}\n\n"
+                    )
+                except Exception as e:
+                    print(f"Error reading match: {e}")
+        except Exception as e:
+            print(f"Pinecone search error: {e}")
+        return relevant_content
+
+    async def classify_intent(self, chatbot_request: ChatbotRequest) -> dict:
+        """Phase 1: Lightweight Gemini call to classify user intent (~50 tokens out)."""
+        model_name = settings.model_name or "gemini-2.5-flash"
+        prompt = load_prompt("intent-classification")
+        prompt = prompt.replace("{website_url}", chatbot_request.website_url)
+        prompt = prompt.replace("{message}", chatbot_request.message)
+        prompt = prompt.replace("{website_description}", chatbot_request.website_description)
+
+        endpoint = f"{GEMINI_BASE}/{model_name}:generateContent?key={settings.model_api_key}"
+        payload = {
+            "contents": [
+                {"role": "model", "parts": [{"text": prompt}]}
+            ] + self._build_history_contents(chatbot_request.chat_history) + [
+                {"role": "user", "parts": [{"text": chatbot_request.message}]}
+            ],
+            "generationConfig": {
+                "temperature": 0.1,
+                "maxOutputTokens": 256,
+                "responseMimeType": "text/plain",
+            },
+        }
+
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                endpoint, json=payload,
+                timeout=aiohttp.ClientTimeout(total=30),
+            ) as resp:
+                if resp.status != 200:
+                    raise HTTPException(
+                        status_code=resp.status,
+                        detail=f"Intent classification error: {await resp.text()}",
+                    )
+                data = await resp.json()
+
+        try:
+            parts = data["candidates"][0]["content"]["parts"]
+            json_text = self._extract_json_from_parts(parts)
+            result = json.loads(json_text)
+        except Exception:
+            return {"intent": "regular", "response": ""}
+
+        intent = result.get("intent", "regular")
+        if intent not in ("regular", "booking", "handoff"):
+            intent = "regular"
+
+        return {"intent": intent, "response": result.get("response", "")}
+
+    async def stream_response_sse(self, chatbot_request: ChatbotRequest, user_id: int):
+        """Async generator that yields SSE events for the two-phase streaming flow.
+
+        Event protocol:
+          event: intent   -> {"type": "regular"|"booking"|"handoff"}
+          event: token    -> {"text": "chunk"}          (regular only)
+          event: action   -> {"type":..., "response":..., "ticket_uuid":...}
+          event: done     -> {"is_booking":bool, "is_human_handoff":bool}
+          event: error    -> {"message":str, "code":int}
+        """
+        model_name = settings.model_name or "gemini-2.5-flash"
+
+        relevant_content = self._fetch_relevant_content(
+            chatbot_request.message, chatbot_request.website_url
+        )
+
+        # --- Phase 1: Intent Classification ---
+        try:
+            classification = await self.classify_intent(chatbot_request)
+        except Exception as e:
+            yield self._sse("error", {"message": str(e), "code": 500})
+            return
+
+        intent = classification["intent"]
+        yield self._sse("intent", {"type": intent})
+
+        # --- Phase 2: Conditional Response ---
+        if intent == "regular":
+            prompt = load_prompt("response-streaming")
+            prompt = prompt.replace("{website_url}", chatbot_request.website_url)
+            prompt = prompt.replace("{message}", chatbot_request.message)
+            prompt = prompt.replace("{website_description}", chatbot_request.website_description)
+            prompt = prompt.replace("{relevant_content}", relevant_content)
+
+            stream_endpoint = (
+                f"{GEMINI_BASE}/{model_name}:streamGenerateContent"
+                f"?alt=sse&key={settings.model_api_key}"
+            )
+            payload = {
+                "contents": [
+                    {"role": "model", "parts": [{"text": prompt}]}
+                ] + self._build_history_contents(chatbot_request.chat_history) + [
+                    {"role": "user", "parts": [{"text": chatbot_request.message}]}
+                ],
+                "generationConfig": generation_config,
+                "tools": [{"googleSearch": {}}],
+            }
+
+            full_response = ""
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.post(
+                        stream_endpoint, json=payload,
+                        timeout=aiohttp.ClientTimeout(total=120),
+                    ) as resp:
+                        if resp.status != 200:
+                            error_text = await resp.text()
+                            yield self._sse("error", {
+                                "message": f"LLM streaming error: {error_text}",
+                                "code": resp.status,
+                            })
+                            return
+
+                        async for raw_line in resp.content:
+                            line_str = raw_line.decode("utf-8").strip()
+                            if not line_str.startswith("data: "):
+                                continue
+                            json_str = line_str[6:]
+                            if json_str == "[DONE]":
+                                break
+                            try:
+                                chunk = json.loads(json_str)
+                                parts = (
+                                    chunk.get("candidates", [{}])[0]
+                                    .get("content", {})
+                                    .get("parts", [])
+                                )
+                                for part in parts:
+                                    text = part.get("text", "")
+                                    if text:
+                                        full_response += text
+                                        yield self._sse("token", {"text": text})
+                            except (json.JSONDecodeError, IndexError, KeyError):
+                                continue
+
+            except Exception as e:
+                yield self._sse("error", {"message": str(e), "code": 500})
+                return
+
+            chatbot_request.chat_history.append({
+                "role": "model", "content": full_response,
+                "is_booking": False, "is_human_handoff": False,
+            })
+            await self.save_chat_history(chatbot_request, user_id)
+            yield self._sse("done", {"is_booking": False, "is_human_handoff": False})
+
+        elif intent == "booking":
+            response_text = classification.get("response") or "I'd be happy to help you schedule that."
+            chatbot_request.chat_history.append({
+                "role": "model", "content": response_text,
+                "is_booking": True, "is_human_handoff": False,
+            })
+            await self.save_chat_history(chatbot_request, user_id)
+            yield self._sse("action", {"type": "booking", "response": response_text})
+            yield self._sse("done", {"is_booking": True, "is_human_handoff": False})
+
+        elif intent == "handoff":
+            response_text = classification.get("response") or "Let me connect you with a human agent."
+            ticket_uuid = None
+            try:
+                ticket_uuid = "TICKET-" + str(uuid.uuid4())
+                self.ticket_service.create_ticket(TicketCreate(
+                    user_id=user_id,
+                    message=chatbot_request.message,
+                    session_id=chatbot_request.session_id,
+                    uuid=ticket_uuid,
+                ))
+            except Exception as e:
+                print(f"Error creating ticket: {e}")
+
+            chatbot_request.chat_history.append({
+                "role": "model", "content": response_text,
+                "is_booking": False, "is_human_handoff": True,
+            })
+            await self.save_chat_history(chatbot_request, user_id)
+
+            action_data = {"type": "handoff", "response": response_text}
+            if ticket_uuid:
+                action_data["ticket_uuid"] = ticket_uuid
+            yield self._sse("action", action_data)
+            yield self._sse("done", {
+                "is_booking": False, "is_human_handoff": True,
+                "ticket_uuid": ticket_uuid,
+            })
+
+    @staticmethod
+    def _sse(event: str, data: dict) -> str:
+        return f"event: {event}\ndata: {json.dumps(data)}\n\n"
+
 
 chatbot_service = ChatbotService()

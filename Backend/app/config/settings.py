@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     logging_level: str = "WARNING"
     model_api_key: str = os.getenv("MODEL_API_KEY")
     model_name: str = os.getenv("MODEL_NAME")
+    model_api_base_url: str = os.getenv("MODEL_API_BASE_URL")
     allowed_origins: str = os.getenv("ALLOWED_ORIGINS")
     db_user: str = os.getenv("DB_USER")
     db_password: str = os.getenv("DB_PASSWORD")

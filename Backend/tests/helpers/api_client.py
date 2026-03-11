@@ -116,6 +116,45 @@ class APIClient:
         except Exception as e:
             return {"_status_code": 500, "error": f"Request failed: {str(e)}"}
 
+    def post_sse(self, endpoint: str, data: Dict[str, Any], headers: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
+        """POST request expecting an SSE (text/event-stream) response.
+        Returns {"_status_code": int, "_raw_sse": str, "_events": list[dict]}."""
+        url = f"{self.base_url}{endpoint}"
+        try:
+            response = self.session.post(
+                url, json=data, headers=headers,
+                timeout=self.timeout, stream=True,
+            )
+            if response.headers.get("content-type", "").startswith("text/event-stream"):
+                raw = response.text
+                from helpers.assertions import parse_sse_events
+                events = parse_sse_events(raw)
+                return {
+                    "_status_code": response.status_code,
+                    "_headers": dict(response.headers),
+                    "_raw_sse": raw,
+                    "_events": events,
+                }
+            else:
+                try:
+                    response_data = response.json()
+                except json.JSONDecodeError:
+                    response_data = {"text": response.text}
+                if response_data is None:
+                    response_data = {"_value": None}
+                elif not isinstance(response_data, dict):
+                    response_data = {"_value": response_data}
+                response_data["_status_code"] = response.status_code
+                response_data["_headers"] = dict(response.headers)
+                return response_data
+
+        except requests.exceptions.Timeout:
+            return {"_status_code": 408, "error": "Request timeout", "timeout": self.timeout}
+        except requests.exceptions.ConnectionError as e:
+            return {"_status_code": 503, "error": f"Connection error: {str(e)}"}
+        except Exception as e:
+            return {"_status_code": 500, "error": f"Request failed: {str(e)}"}
+
     def set_auth_token(self, token: str):
         self.session.headers.update({'Authorization': f'Bearer {token}'})
 

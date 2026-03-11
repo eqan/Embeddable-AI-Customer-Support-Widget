@@ -243,6 +243,21 @@ body.show-chatbot .chatbot-popup {
   }
 }
 
+.chat-body .bot-message.streaming .message-text::after {
+  content: "\\25CF";
+  display: inline-block;
+  color: ${colors.primary};
+  animation: cursorBlink 1s steps(2) infinite;
+  margin-left: 2px;
+  font-size: 0.7em;
+  vertical-align: baseline;
+}
+
+@keyframes cursorBlink {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
 .chat-footer {
   position: relative;
   width: 100%;
@@ -717,8 +732,7 @@ em-emoji-picker {
     const closeChatbot = root.querySelector("#close-chatbot");
     const chatForm = root.querySelector(".chat-form");
 
-    // API setup
-    const API_URL = `${window.ChatbotWidgetConfig?.backendBaseUrl}/chatbot-response`;
+    const STREAM_URL = `${window.ChatbotWidgetConfig?.backendBaseUrl}/chatbot-response/stream`;
 
     const userData = {
       message: null,
@@ -731,7 +745,6 @@ em-emoji-picker {
     const chatHistory = [];
     const initialInputHeight = messageInput.scrollHeight;
 
-    // Create message element
     const createMessageElement = (content, ...classes) => {
       const div = document.createElement("div");
       div.classList.add("message", ...classes);
@@ -739,121 +752,222 @@ em-emoji-picker {
       return div;
     };
 
-    // Generate bot response using API
+    function parseSSEEvents(buffer) {
+      const events = [];
+      const blocks = buffer.split("\n\n");
+      const remainder = blocks.pop();
+      for (const block of blocks) {
+        if (!block.trim()) continue;
+        let eventType = "";
+        let eventData = "";
+        for (const line of block.split("\n")) {
+          if (line.startsWith("event: ")) eventType = line.slice(7).trim();
+          else if (line.startsWith("data: ")) eventData = line.slice(6);
+        }
+        if (eventType && eventData) {
+          try { events.push({ type: eventType, data: JSON.parse(eventData) }); }
+          catch { /* skip malformed JSON */ }
+        }
+      }
+      return { events, remainder };
+    }
+
+    function insertBookingUI(chatBody, incomingMessageDiv, messageElement) {
+      const iframeWrapper = document.createElement("div");
+      iframeWrapper.classList.add("calendly-embed-wrapper");
+      iframeWrapper.innerHTML =
+        `<iframe src="${window.ChatbotWidgetConfig?.calendlyUrl}" style="width: 100%; min-width: 400px; height: 600px; border:none;" frameborder="0"></iframe>`;
+      chatBody.insertBefore(iframeWrapper, incomingMessageDiv);
+      messageElement.textContent = "Select schedule from above";
+    }
+
+    function insertHandoffUI(chatBody, incomingMessageDiv, messageElement, ticketUuid) {
+      const wrapper = document.createElement("div");
+      wrapper.classList.add("support-form-wrapper");
+      wrapper.innerHTML = `
+        <form class="support-form" style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+          <label style="display: block; margin-bottom: 10px;">Name*<input type="text" name="name" required style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;" /></label>
+          <label style="display: block; margin-bottom: 10px;">Email*<input type="email" name="email" required style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;" /></label>
+          <label style="display: block; margin-bottom: 10px;">Phone<input type="tel" name="phone" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;" /></label>
+          <label style="display: block; margin-bottom: 10px;">Message / Issue*<textarea name="message" rows="3" required style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;"></textarea></label>
+          <label style="display: block; margin-bottom: 10px;">Priority<select name="priority" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;">
+              <option value="Low">Low</option>
+              <option value="Medium" selected>Medium</option>
+              <option value="High">High</option>
+              <option value="Urgent">Urgent</option>
+          </select></label>
+          <button type="submit" style="background-color: ${colors.primary}; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer;">Submit</button>
+        </form>`;
+
+      chatBody.insertBefore(wrapper, incomingMessageDiv);
+      messageElement.textContent = "Please fill out the form above to talk to a human agent.";
+
+      const form = wrapper.querySelector(".support-form");
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const fd = new FormData(form);
+        const payload = {
+          name: fd.get("name"),
+          email: fd.get("email"),
+          phone: fd.get("phone") || "N/A",
+          message: fd.get("message"),
+          priority: fd.get("priority"),
+          ticket_uuid: ticketUuid,
+        };
+        try {
+          await emailjs.send(
+            window.ChatbotWidgetConfig?.emailJsServiceId || 'YOUR_SERVICE_ID',
+            window.ChatbotWidgetConfig?.emailJsSupportTemplateId || 'SUPPORT_TEMPLATE_ID',
+            payload
+          );
+          messageElement.textContent = `Thank you! Your ticket (${ticketUuid}) has been created. Our support team will reach out to you at ${payload.email}.`;
+          wrapper.remove();
+        } catch (err) {
+          console.error(err);
+          messageElement.textContent = "Failed to submit your request. Please try again later.";
+          messageElement.style.color = "#ff0000";
+        }
+      });
+    }
+
     const generateBotResponse = async (incomingMessageDiv) => {
       const messageElement = incomingMessageDiv.querySelector(".message-text");
 
-      // Store chat history in the simple {role, content} shape expected by the backend
       chatHistory.push({
         role: "user",
         content: userData.message,
         timestamp: new Date().toISOString(),
       });
 
-      const requestOptions = {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_history: chatHistory,
-          message: userData.message,
-          token: getStoredToken(),
-          session_id: SESSION_ID,
-          website_url: window.ChatbotWidgetConfig?.hostUrl || "",
-          website_description: window.ChatbotWidgetConfig?.hostDescription || "",
-        }),
-      };
-
       try {
-        const response = await fetch(API_URL, requestOptions);
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error?.detail || data.error?.message || "Error");
+        const response = await fetch(STREAM_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_history: chatHistory,
+            message: userData.message,
+            token: getStoredToken(),
+            session_id: SESSION_ID,
+            website_url: window.ChatbotWidgetConfig?.hostUrl || "",
+            website_description: window.ChatbotWidgetConfig?.hostDescription || "",
+          }),
+        });
 
-        const apiResponseText = data.response.trim();
-
-        if (data.is_booking) {
-          // Insert Calendly iframe JUST ABOVE this bot message so that it is not treated as a chat bubble
-          const iframeWrapper = document.createElement("div");
-          iframeWrapper.classList.add("calendly-embed-wrapper");
-          iframeWrapper.innerHTML =
-            `<iframe src="${window.ChatbotWidgetConfig?.calendlyUrl}" style="width: 100%; min-width: 400px; height: 600px; border:none;" frameborder="0"></iframe>`;
-
-          // Place iframe immediately before the incoming bot message element
-          chatBody.insertBefore(iframeWrapper, incomingMessageDiv);
-
-          // Update the bot message text to guide the user
-          messageElement.textContent = "Select schedule from above";
-        } else if (data.is_human_handoff) {
-          // Show support ticket form
-          const wrapper = document.createElement("div");
-          wrapper.classList.add("support-form-wrapper");
-          wrapper.innerHTML = `
-            <form class="support-form" style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-              <label style="display: block; margin-bottom: 10px;">Name*<input type="text" name="name" required style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;" /></label>
-              <label style="display: block; margin-bottom: 10px;">Email*<input type="email" name="email" required style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;" /></label>
-              <label style="display: block; margin-bottom: 10px;">Phone<input type="tel" name="phone" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;" /></label>
-              <label style="display: block; margin-bottom: 10px;">Message / Issue*<textarea name="message" rows="3" required style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;"></textarea></label>
-              <label style="display: block; margin-bottom: 10px;">Priority<select name="priority" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;">
-                  <option value="Low">Low</option>
-                  <option value="Medium" selected>Medium</option>
-                  <option value="High">High</option>
-                  <option value="Urgent">Urgent</option>
-              </select></label>
-              <button type="submit" style="background-color: ${colors.primary}; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer;">Submit</button>
-            </form>`;
-
-          // Insert form just above bot bubble
-          chatBody.insertBefore(wrapper, incomingMessageDiv);
-          messageElement.textContent = "Please fill out the form above to talk to a human agent.";
-
-          const form = wrapper.querySelector(".support-form");
-          form.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const fd = new FormData(form);
-
-            const payload = {
-              name: fd.get("name"),
-              email: fd.get("email"),
-              phone: fd.get("phone") || "N/A",
-              message: fd.get("message"),
-              priority: fd.get("priority"),
-              ticket_uuid: data?.ticket_uuid,
-            };
-
-            try {
-              // Send email to support team
-              await emailjs.send(
-                window.ChatbotWidgetConfig?.emailJsServiceId || 'YOUR_SERVICE_ID',
-                window.ChatbotWidgetConfig?.emailJsSupportTemplateId || 'SUPPORT_TEMPLATE_ID',
-                payload
-              );
-
-              // Acknowledge in chat
-              messageElement.textContent = `Thank you! Your ticket (${data?.ticket_uuid}) has been created. Our support team will reach out to you at ${payload.email}.`;
-              wrapper.remove();
-            } catch (err) {
-              console.error(err);
-              messageElement.textContent = "Failed to submit your request. Please try again later.";
-              messageElement.style.color = "#ff0000";
-            }
-          });
-        } else {
-          messageElement.innerHTML = marked.parse(apiResponseText);
+        if (!response.ok) {
+          let errMsg = "Error";
+          try { const d = await response.json(); errMsg = d.detail || errMsg; } catch {}
+          throw new Error(errMsg);
         }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let fullResponse = "";
+        let displayedLen = 0;
+        let isBooking = false;
+        let isHandoff = false;
+        let ticketUuid = null;
+        let streamDone = false;
+
+        const CHAR_DELAY = 18;
+        let typingTimer = null;
+
+        function startTyping() {
+          if (typingTimer) return;
+          typingTimer = setInterval(() => {
+            if (displayedLen < fullResponse.length) {
+              displayedLen++;
+              messageElement.innerHTML = marked.parse(fullResponse.slice(0, displayedLen));
+              chatBody.scrollTo({ top: chatBody.scrollHeight, behavior: "smooth" });
+            } else if (streamDone) {
+              clearInterval(typingTimer);
+              typingTimer = null;
+              messageElement.innerHTML = marked.parse(fullResponse);
+              incomingMessageDiv.classList.remove("streaming");
+            }
+          }, CHAR_DELAY);
+        }
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const { events, remainder } = parseSSEEvents(buffer);
+          buffer = remainder;
+
+          for (const evt of events) {
+            switch (evt.type) {
+              case "intent":
+                if (evt.data.type === "regular") {
+                  incomingMessageDiv.classList.remove("thinking");
+                  incomingMessageDiv.classList.add("streaming");
+                  messageElement.innerHTML = "";
+                  startTyping();
+                }
+                break;
+
+              case "token":
+                fullResponse += evt.data.text;
+                break;
+
+              case "action":
+                incomingMessageDiv.classList.remove("thinking");
+                incomingMessageDiv.classList.remove("streaming");
+                if (evt.data.type === "booking") {
+                  isBooking = true;
+                  fullResponse = evt.data.response || "";
+                  insertBookingUI(chatBody, incomingMessageDiv, messageElement);
+                } else if (evt.data.type === "handoff") {
+                  isHandoff = true;
+                  fullResponse = evt.data.response || "";
+                  ticketUuid = evt.data.ticket_uuid || null;
+                  insertHandoffUI(chatBody, incomingMessageDiv, messageElement, ticketUuid);
+                }
+                break;
+
+              case "done":
+                isBooking = evt.data.is_booking || false;
+                isHandoff = evt.data.is_human_handoff || false;
+                if (evt.data.ticket_uuid) ticketUuid = evt.data.ticket_uuid;
+                streamDone = true;
+                break;
+
+              case "error":
+                incomingMessageDiv.classList.remove("streaming");
+                if (typingTimer) { clearInterval(typingTimer); typingTimer = null; }
+                throw new Error(evt.data.message || "Something went wrong");
+            }
+          }
+        }
+
+        streamDone = true;
+        await new Promise((resolve) => {
+          const flush = setInterval(() => {
+            if (displayedLen >= fullResponse.length || !typingTimer) {
+              clearInterval(flush);
+              if (typingTimer) { clearInterval(typingTimer); typingTimer = null; }
+              if (fullResponse) messageElement.innerHTML = marked.parse(fullResponse);
+              incomingMessageDiv.classList.remove("streaming");
+              resolve();
+            }
+          }, 50);
+        });
 
         chatHistory.push({
           role: "model",
-          content: apiResponseText,
+          content: fullResponse,
           timestamp: new Date().toISOString(),
-          is_booking: data.is_booking,
-          is_human_handoff: data.is_human_handoff,
+          is_booking: isBooking,
+          is_human_handoff: isHandoff,
         });
-        console.log(chatHistory);
       } catch (error) {
         console.error(error);
         messageElement.innerText = error.message || "Something went wrong";
         messageElement.style.color = "#ff0000";
       } finally {
         incomingMessageDiv.classList.remove("thinking");
+        incomingMessageDiv.classList.remove("streaming");
         chatBody.scrollTo({ top: chatBody.scrollHeight, behavior: "smooth" });
       }
     };
