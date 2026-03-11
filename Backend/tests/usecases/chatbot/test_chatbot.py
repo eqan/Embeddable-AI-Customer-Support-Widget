@@ -29,11 +29,8 @@ with open(test_cases_path) as f:
 
 
 def _prepare_body(test_case: dict, primary_token: str = None) -> dict:
-    """Build request body, injecting auth token and handling special placeholders."""
+    """Build request body, handling special placeholders."""
     body = dict(test_case["input"].get("body", {}))
-
-    if test_case["input"].get("use_auth_token") and primary_token:
-        body["token"] = primary_token
 
     if body.get("message") == "__GENERATE_LONG_STRING_10001__":
         body["message"] = "x" * 10001
@@ -121,29 +118,27 @@ def test_chatbot_rejects_missing_required_fields(unauthenticated_client: APIClie
 
 @pytest.mark.chatbot
 def test_chatbot_rejects_invalid_token(unauthenticated_client: APIClient):
-    """POST /chatbot-response with a bad JWT returns 400."""
+    """POST /chatbot-response with a bad Authorization header returns 401."""
     response = unauthenticated_client.post("/chatbot-response", {
         "message": "Hello",
-        "token": "bad.token.value",
         "session_id": "test-bad-token",
         "chat_history": [],
         "website_url": "https://example.com",
         "website_description": "Test",
-    })
+    }, headers={"Authorization": "Bearer bad.token.value"})
     actual = response.get("_status_code")
-    assert actual in (400, 429), f"Expected 400 or 429 (rate limited), got {actual}"
+    assert actual in (401, 429), f"Expected 401 or 429 (rate limited), got {actual}"
     print("  Invalid token rejection test passed")
 
 
 @pytest.mark.chatbot
 @pytest.mark.external
 @pytest.mark.slow
-def test_chatbot_returns_valid_response(api_client: APIClient, primary_token: str):
+def test_chatbot_returns_valid_response(api_client: APIClient):
     """POST /chatbot-response with valid input returns a structured ChatbotResponse."""
     session_id = f"test-valid-{uuid.uuid4()}"
     response = api_client.post("/chatbot-response", {
         "message": "What services do you offer?",
-        "token": primary_token,
         "session_id": session_id,
         "chat_history": [],
         "website_url": "https://example.com",
@@ -159,12 +154,11 @@ def test_chatbot_returns_valid_response(api_client: APIClient, primary_token: st
 @pytest.mark.chatbot
 @pytest.mark.external
 @pytest.mark.slow
-def test_chatbot_booking_intent(api_client: APIClient, primary_token: str):
+def test_chatbot_booking_intent(api_client: APIClient):
     """Asking to book a meeting should trigger is_booking=true."""
     session_id = f"test-booking-{uuid.uuid4()}"
     response = api_client.post("/chatbot-response", {
         "message": "I'd like to book a demo call with your sales team next week",
-        "token": primary_token,
         "session_id": session_id,
         "chat_history": [],
         "website_url": "https://example.com",
@@ -179,12 +173,11 @@ def test_chatbot_booking_intent(api_client: APIClient, primary_token: str):
 @pytest.mark.chatbot
 @pytest.mark.external
 @pytest.mark.slow
-def test_chatbot_handoff_intent(api_client: APIClient, primary_token: str):
+def test_chatbot_handoff_intent(api_client: APIClient):
     """Asking to talk to a human should trigger is_human_handoff=true."""
     session_id = f"test-handoff-{uuid.uuid4()}"
     response = api_client.post("/chatbot-response", {
         "message": "I want to talk to a real person, can you connect me with a human agent?",
-        "token": primary_token,
         "session_id": session_id,
         "chat_history": [],
         "website_url": "https://example.com",
@@ -199,7 +192,7 @@ def test_chatbot_handoff_intent(api_client: APIClient, primary_token: str):
 @pytest.mark.chatbot
 @pytest.mark.external
 @pytest.mark.slow
-def test_chatbot_maintains_context_with_history(api_client: APIClient, primary_token: str):
+def test_chatbot_maintains_context_with_history(api_client: APIClient):
     """Chatbot should use chat_history for contextual responses."""
     session_id = f"test-context-{uuid.uuid4()}"
     history = [
@@ -208,7 +201,6 @@ def test_chatbot_maintains_context_with_history(api_client: APIClient, primary_t
     ]
     response = api_client.post("/chatbot-response", {
         "message": "Is there a discount for annual billing?",
-        "token": primary_token,
         "session_id": session_id,
         "chat_history": history,
         "website_url": "https://example.com",
@@ -226,7 +218,6 @@ def test_chatbot_payload_size_limit(unauthenticated_client: APIClient):
     large_history = [{"role": "user", "content": "x" * 5000} for _ in range(20)]
     response = unauthenticated_client.post("/chatbot-response", {
         "message": "Hello",
-        "token": "test",
         "session_id": "size-test",
         "chat_history": large_history,
         "website_url": "https://example.com",
@@ -261,26 +252,24 @@ def test_stream_rejects_empty_body(unauthenticated_client: APIClient):
 
 @pytest.mark.chatbot
 def test_stream_rejects_invalid_token(unauthenticated_client: APIClient):
-    """POST /chatbot-response/stream with bad JWT returns 400."""
+    """POST /chatbot-response/stream with bad Authorization header returns 401."""
     response = unauthenticated_client.post("/chatbot-response/stream", {
         "message": "Hello",
-        "token": "bad.token.value",
         "session_id": "test-stream-bad-token",
         "chat_history": [],
         "website_url": "https://example.com",
         "website_description": "Test",
-    })
+    }, headers={"Authorization": "Bearer bad.token.value"})
     actual = response.get("_status_code")
-    assert actual in (400, 429), f"Expected 400 or 429, got {actual}"
+    assert actual in (401, 429), f"Expected 401 or 429, got {actual}"
     print("  SSE: invalid token rejection test passed")
 
 
 @pytest.mark.chatbot
-def test_stream_returns_sse_content_type(api_client: APIClient, primary_token: str):
+def test_stream_returns_sse_content_type(api_client: APIClient):
     """POST /chatbot-response/stream returns text/event-stream content type."""
     response = api_client.post_sse("/chatbot-response/stream", {
         "message": "Hi",
-        "token": primary_token,
         "session_id": f"test-sse-ct-{uuid.uuid4()}",
         "chat_history": [],
         "website_url": "https://example.com",
@@ -300,11 +289,10 @@ def test_stream_returns_sse_content_type(api_client: APIClient, primary_token: s
 @pytest.mark.chatbot
 @pytest.mark.external
 @pytest.mark.slow
-def test_stream_regular_response(api_client: APIClient, primary_token: str):
+def test_stream_regular_response(api_client: APIClient):
     """SSE stream for a regular question contains intent+token(s)+done events."""
     response = api_client.post_sse("/chatbot-response/stream", {
         "message": "What services do you offer?",
-        "token": primary_token,
         "session_id": f"test-sse-regular-{uuid.uuid4()}",
         "chat_history": [],
         "website_url": "https://example.com",
@@ -334,11 +322,10 @@ def test_stream_regular_response(api_client: APIClient, primary_token: str):
 @pytest.mark.chatbot
 @pytest.mark.external
 @pytest.mark.slow
-def test_stream_booking_response(api_client: APIClient, primary_token: str):
+def test_stream_booking_response(api_client: APIClient):
     """SSE stream for a booking request returns intent+action+done events."""
     response = api_client.post_sse("/chatbot-response/stream", {
         "message": "I'd like to book a demo call with your team next week",
-        "token": primary_token,
         "session_id": f"test-sse-booking-{uuid.uuid4()}",
         "chat_history": [],
         "website_url": "https://example.com",
@@ -365,11 +352,10 @@ def test_stream_booking_response(api_client: APIClient, primary_token: str):
 @pytest.mark.chatbot
 @pytest.mark.external
 @pytest.mark.slow
-def test_stream_handoff_response(api_client: APIClient, primary_token: str):
+def test_stream_handoff_response(api_client: APIClient):
     """SSE stream for a handoff request returns intent+action+done with ticket_uuid."""
     response = api_client.post_sse("/chatbot-response/stream", {
         "message": "I want to talk to a real person, connect me with a human agent please",
-        "token": primary_token,
         "session_id": f"test-sse-handoff-{uuid.uuid4()}",
         "chat_history": [],
         "website_url": "https://example.com",

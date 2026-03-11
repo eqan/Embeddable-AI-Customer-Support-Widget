@@ -73,17 +73,15 @@
     },
     {
       "name": "generate_stats_invalid_token",
-      "description": "POST /stats with invalid token should return 400",
+      "description": "POST /stats without Authorization header should return 401",
       "input": {
         "method": "POST",
         "endpoint": "/stats",
-        "body": {
-          "token": "invalid.jwt.garbage"
-        },
+        "body": {},
         "no_auth": true
       },
       "expected": {
-        "status_code": 400
+        "status_code": 401
       },
       "assertions": {
         "type": "auth_failure"

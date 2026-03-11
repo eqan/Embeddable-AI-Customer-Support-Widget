@@ -4,8 +4,8 @@
   "module": "chatbot",
   "tests": [
     {
-      "name": "chatbot_missing_token",
-      "description": "POST /chatbot-response without a token field should return 400",
+      "name": "chatbot_no_auth_header",
+      "description": "POST /chatbot-response without Authorization header should return 401",
       "input": {
         "method": "POST",
         "endpoint": "/chatbot-response",
@@ -15,13 +15,14 @@
           "chat_history": [],
           "website_url": "https://example.com",
           "website_description": "Test company"
-        }
+        },
+        "no_auth": true
       },
       "expected": {
-        "status_code": 422
+        "status_code": 401
       },
       "assertions": {
-        "type": "validation_error"
+        "type": "auth_failure"
       },
       "skip": false
     },
@@ -32,7 +33,6 @@
         "method": "POST",
         "endpoint": "/chatbot-response",
         "body": {
-          "token": "placeholder",
           "session_id": "test-session-1",
           "chat_history": [],
           "website_url": "https://example.com",
@@ -55,7 +55,6 @@
         "endpoint": "/chatbot-response",
         "body": {
           "message": "Hello",
-          "token": "placeholder",
           "chat_history": [],
           "website_url": "https://example.com",
           "website_description": "Test company"
@@ -86,22 +85,22 @@
       "skip": false
     },
     {
-      "name": "chatbot_invalid_token",
-      "description": "POST /chatbot-response with invalid JWT token should return 400",
+      "name": "chatbot_no_auth",
+      "description": "POST /chatbot-response without Authorization header should return 401",
       "input": {
         "method": "POST",
         "endpoint": "/chatbot-response",
         "body": {
           "message": "Hello",
-          "token": "invalid.jwt.token",
           "session_id": "test-session-1",
           "chat_history": [],
           "website_url": "https://example.com",
           "website_description": "Test company"
-        }
+        },
+        "no_auth": true
       },
       "expected": {
-        "status_code": 400
+        "status_code": 401
       },
       "assertions": {
         "type": "auth_failure"
@@ -194,7 +193,6 @@
         "endpoint": "/chatbot-response",
         "body": {
           "message": "__GENERATE_LONG_STRING_10001__",
-          "token": "placeholder",
           "session_id": "test-session-overflow",
           "chat_history": [],
           "website_url": "https://example.com",
@@ -240,14 +238,14 @@
     },
     {
       "name": "all_chats_invalid_token",
-      "description": "GET /all-chats without any token should return 400",
+      "description": "GET /all-chats without Authorization header should return 401",
       "input": {
         "method": "GET",
         "endpoint": "/all-chats",
         "no_auth": true
       },
       "expected": {
-        "status_code_in": [400, 422]
+        "status_code_in": [401, 422]
       },
       "assertions": {
         "type": "auth_failure"
@@ -289,22 +287,22 @@
       "skip": false
     },
     {
-      "name": "stream_invalid_token",
-      "description": "POST /chatbot-response/stream with invalid JWT returns 400",
+      "name": "stream_no_auth",
+      "description": "POST /chatbot-response/stream without Authorization header returns 401",
       "input": {
         "method": "POST",
         "endpoint": "/chatbot-response/stream",
         "body": {
           "message": "Hello",
-          "token": "invalid.jwt.token",
           "session_id": "test-stream",
           "chat_history": [],
           "website_url": "https://example.com",
           "website_description": "Test"
-        }
+        },
+        "no_auth": true
       },
       "expected": {
-        "status_code_in": [400, 422]
+        "status_code_in": [401, 422]
       },
       "assertions": {
         "type": "auth_failure"

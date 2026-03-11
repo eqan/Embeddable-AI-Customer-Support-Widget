@@ -65,40 +65,26 @@ class UsersService:
             raise HTTPException(status_code=500, detail=str(e))
 
     async def verify_jwt_token_for_chatbot(self, request: Request):
-        user_id = None
-        token = None
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Missing authentication token")
+
+        token = auth_header.split(" ")[1]
 
         try:
-            body = await request.json()
-            token = body.get("token") if isinstance(body, dict) else None
-        except Exception:
-            pass
-
-        if not token:
-            auth_header = request.headers.get("Authorization")
-            if auth_header and auth_header.startswith("Bearer "):
-                token = auth_header.split(" ")[1]
-
-        if not token:
-            raise HTTPException(status_code=400, detail="Missing authentication token")
-            
-        try:
-            # Verify JWT token
             extracted_payload = jwt.decode(token, self.SECRET_KEY, algorithms=[self.ALGORITHM])
-            # Store user info for later use if needed
             user_email = extracted_payload.get("email")
             user = await self.get_user(user_email)
             if user.blackListed:
                 return None
-            user_id = user.id
             print(f"Token verified for user: {user_email}")
-            return user_id
+            return user.id
         except jwt.ExpiredSignatureError:
-            raise HTTPException(status_code=400, detail="Token expired")
+            raise HTTPException(status_code=401, detail="Token expired")
         except jwt.InvalidTokenError:
-            raise HTTPException(status_code=400, detail="Invalid token")
+            raise HTTPException(status_code=401, detail="Invalid token")
         except Exception:
-            raise HTTPException(status_code=400, detail="Token verification failed")
+            raise HTTPException(status_code=401, detail="Token verification failed")
         
 
     async def verify_jwt_token(self, request: Request):

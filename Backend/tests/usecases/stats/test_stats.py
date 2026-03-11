@@ -109,9 +109,9 @@ def test_get_stats_requires_auth(unauthenticated_client: APIClient):
 
 
 @pytest.mark.stats
-def test_generate_stats_with_auth(api_client: APIClient, primary_token: str):
+def test_generate_stats_with_auth(api_client: APIClient):
     """POST /stats with valid auth generates stats with expected fields."""
-    response = api_client.post("/stats", {"token": primary_token})
+    response = api_client.post("/stats", {})
     if response.get("_status_code") in (400, 401, 429):
         pytest.skip("Token expired/invalid or rate limited")
     assert_status_code(response, 200)
@@ -131,9 +131,9 @@ def test_get_stats_with_auth(api_client: APIClient):
 
 
 @pytest.mark.stats
-def test_stats_numeric_fields_non_negative(api_client: APIClient, primary_token: str):
+def test_stats_numeric_fields_non_negative(api_client: APIClient):
     """All numeric stats fields should be >= 0."""
-    response = api_client.post("/stats", {"token": primary_token})
+    response = api_client.post("/stats", {})
     if response.get("_status_code") in (400, 401):
         pytest.skip("Token expired or invalid")
     if response.get("_status_code") != 200:
@@ -150,9 +150,9 @@ def test_stats_numeric_fields_non_negative(api_client: APIClient, primary_token:
 
 
 @pytest.mark.stats
-def test_stats_success_rate_bounded(api_client: APIClient, primary_token: str):
+def test_stats_success_rate_bounded(api_client: APIClient):
     """success_rate should be between 0.0 and a reasonable upper bound."""
-    response = api_client.post("/stats", {"token": primary_token})
+    response = api_client.post("/stats", {})
     if response.get("_status_code") in (400, 401):
         pytest.skip("Token expired or invalid")
     if response.get("_status_code") != 200:

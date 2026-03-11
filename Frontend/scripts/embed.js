@@ -842,11 +842,13 @@ em-emoji-picker {
       try {
         const response = await fetch(STREAM_URL, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${getStoredToken()}`,
+          },
           body: JSON.stringify({
             chat_history: chatHistory,
             message: userData.message,
-            token: getStoredToken(),
             session_id: SESSION_ID,
             website_url: window.ChatbotWidgetConfig?.hostUrl || "",
             website_description: window.ChatbotWidgetConfig?.hostDescription || "",

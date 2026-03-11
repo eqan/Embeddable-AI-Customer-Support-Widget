@@ -52,9 +52,7 @@ class AuthenticatedClient:
         self.headers = get_auth_headers(token)
 
     async def post(self, endpoint: str, json_data: Dict = None, **kwargs) -> httpx.Response:
-        """Make authenticated POST request. Injects token into the JSON body."""
-        if json_data is not None:
-            json_data = {**json_data, "token": self.token}
+        """Make authenticated POST request. Token is sent via Authorization header."""
         async with httpx.AsyncClient(verify=False, timeout=30.0) as client:
             url = f"{self.base_url}{endpoint}"
             return await client.post(url, json=json_data, headers=self.headers, **kwargs)
