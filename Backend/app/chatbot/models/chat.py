@@ -20,7 +20,7 @@ class Chat(Base):
             "user_id": self.user_id,
             "session_id": self.session_id,
             "message": self.message,
-            "response": self.response,
+            "chat_history": self.chat_history,
             "created_at": self.created_at,
             "updated_at": self.updated_at
         }
