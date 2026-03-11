@@ -5,14 +5,14 @@
   "users": {
     "primary": {
       "full_name": "Test Primary User",
-      "email": "test.primary@example.com",
-      "token": "",
+      "email": "eqan.ahmad123@gmail.com",
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMDI4MjY1NTY1NzY4MjY2OTI5NjMiLCJlbWFpbCI6ImVxYW4uYWhtYWQxMjNAZ21haWwuY29tIiwibmFtZSI6IkVxYW4gQWhtYWQiLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jS0hYa3ZSUlA0dWV3dDI0RlR1MWJfaGJGQnRIcTB0Q2h1dnVhZUZTcmdfNmVJT0dHRDB5dz1zOTYtYyIsImV4cCI6MTc3Mzg1ODg1Mn0.mFtpTZR1o0uO9nGRqnfUUNxlkx94vKKDu4rDyuFDElM",
       "description": "Primary test user for most test modules"
     },
     "secondary": {
       "full_name": "Test Secondary User",
-      "email": "test.secondary@example.com",
-      "token": "",
+      "email": "eqan.ahmad123@gmail.com",
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMDI4MjY1NTY1NzY4MjY2OTI5NjMiLCJlbWFpbCI6ImVxYW4uYWhtYWQxMjNAZ21haWwuY29tIiwibmFtZSI6IkVxYW4gQWhtYWQiLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jS0hYa3ZSUlA0dWV3dDI0RlR1MWJfaGJGQnRIcTB0Q2h1dnVhZUZTcmdfNmVJT0dHRDB5dz1zOTYtYyIsImV4cCI6MTc3Mzg1ODg1Mn0.mFtpTZR1o0uO9nGRqnfUUNxlkx94vKKDu4rDyuFDElM",
       "description": "Secondary test user for multi-user scenarios"
     }
   },

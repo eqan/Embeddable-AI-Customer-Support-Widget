@@ -29,8 +29,12 @@ class APIClient:
             except json.JSONDecodeError:
                 response_data = {"text": response.text, "error": "Failed to parse JSON response"}
 
-            if isinstance(response_data, list):
+            if response_data is None:
+                response_data = {"_value": None}
+            elif isinstance(response_data, list):
                 response_data = {"_items": response_data}
+            elif not isinstance(response_data, dict):
+                response_data = {"_value": response_data}
 
             response_data['_status_code'] = response.status_code
             response_data['_headers'] = dict(response.headers)
@@ -52,8 +56,12 @@ class APIClient:
             except json.JSONDecodeError:
                 response_data = {"text": response.text, "error": "Failed to parse JSON response"}
 
-            if isinstance(response_data, list):
+            if response_data is None:
+                response_data = {"_value": None}
+            elif isinstance(response_data, list):
                 response_data = {"_items": response_data}
+            elif not isinstance(response_data, dict):
+                response_data = {"_value": response_data}
 
             response_data['_status_code'] = response.status_code
             response_data['_headers'] = dict(response.headers)
@@ -75,8 +83,12 @@ class APIClient:
             except json.JSONDecodeError:
                 response_data = {"text": response.text, "error": "Failed to parse JSON response"}
 
-            if isinstance(response_data, list):
+            if response_data is None:
+                response_data = {"_value": None}
+            elif isinstance(response_data, list):
                 response_data = {"_items": response_data}
+            elif not isinstance(response_data, dict):
+                response_data = {"_value": response_data}
 
             response_data['_status_code'] = response.status_code
             response_data['_headers'] = dict(response.headers)

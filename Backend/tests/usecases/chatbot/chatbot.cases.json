@@ -240,10 +240,11 @@
     },
     {
       "name": "all_chats_invalid_token",
-      "description": "GET /all-chats with invalid token in body should return 400",
+      "description": "GET /all-chats without any token should return 400",
       "input": {
         "method": "GET",
-        "endpoint": "/all-chats"
+        "endpoint": "/all-chats",
+        "no_auth": true
       },
       "expected": {
         "status_code_in": [400, 422]

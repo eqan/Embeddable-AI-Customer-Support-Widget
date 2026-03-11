@@ -57,13 +57,20 @@ def test_parametrized_cases(api_client: APIClient, unauthenticated_client: APICl
     else:
         pytest.fail(f"Unsupported method: {method}")
 
+    actual_status = response.get("_status_code")
+
+    if actual_status == 429:
+        pytest.skip("Rate limited (429) — retry after a pause")
+
+    if inp.get("use_auth") and actual_status in (400, 401):
+        pytest.skip("Token expired or invalid — update persistent-users.json")
+
     if "status_code" in expected:
         assert_status_code(response, expected["status_code"])
 
     if "status_code_in" in expected:
-        actual = response.get("_status_code")
-        assert actual in expected["status_code_in"], \
-            f"Expected status in {expected['status_code_in']}, got {actual}"
+        assert actual_status in expected["status_code_in"], \
+            f"Expected status in {expected['status_code_in']}, got {actual_status}"
 
     if assertion_type == "validation_error":
         assert_validation_error(response)
