@@ -2,7 +2,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from config.settings import Settings
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, scoped_session
 from firecrawl import FirecrawlApp
 import voyageai
 from pinecone import Pinecone
@@ -60,8 +60,9 @@ engine = create_engine(
     },
 )
 
-# Create a session
-Session = sessionmaker(bind=engine)
+# Thread-local scoped session — each thread gets its own session instance.
+# Call Session.remove() in finally blocks to release the session back to the pool.
+Session = scoped_session(sessionmaker(bind=engine))
 
 vo = voyageai.Client(api_key=settings.voyage_api_key)
 

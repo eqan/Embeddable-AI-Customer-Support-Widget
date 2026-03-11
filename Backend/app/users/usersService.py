@@ -14,11 +14,14 @@ class UsersService:
     """Service class that encapsulates all user-related business logic."""
 
     def __init__(self):
-        # cache env configuration for easy access inside methods
         self.SECRET_KEY = os.getenv("SECRET_KEY")
         self.ALGORITHM = os.getenv("ALGORITHM")
         self.ACCESS_TOKEN_EXPIRE_DAYS = int(os.getenv("ACCESS_TOKEN_EXPIRE_DAYS"))
-        self.db = Session()
+
+    @property
+    def db(self):
+        """Return the thread-local scoped session."""
+        return Session()
 
     async def exchange_auth_code_for_token(self, auth_code: str):
         try:
@@ -133,7 +136,7 @@ class UsersService:
             self.db.rollback()
             raise HTTPException(status_code=500, detail=str(e))
         finally:
-            self.db.close()
+            Session.remove()
 
     async def blacklist_user(self, user_email: str):
         try:
@@ -155,7 +158,7 @@ class UsersService:
             print(f"Unexpected error in blacklist_user: {str(e)}")
             raise HTTPException(status_code=500, detail=str(e))
         finally:
-            self.db.close()
+            Session.remove()
 
 
     async def get_user(self, user_email: str):
@@ -169,7 +172,7 @@ class UsersService:
             print(f"Unexpected error in get_user: {str(e)}")
             raise HTTPException(status_code=500, detail=str(e))
         finally:
-            self.db.close()
+            Session.remove()
 
     async def update_last_time_service_used(self, user_email: str):
         try:
@@ -191,6 +194,6 @@ class UsersService:
             print(f"Unexpected error in update_last_time_service_used: {str(e)}")
             raise HTTPException(status_code=500, detail=str(e))
         finally:
-            self.db.close()
+            Session.remove()
 
 users_service = UsersService()

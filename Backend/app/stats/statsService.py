@@ -8,8 +8,11 @@ import ast
 
 class StatsService:
     """Service providing conversation statistics for a given user."""
-    def __init__(self):
-        self.db = Session()
+
+    @property
+    def db(self):
+        """Return the thread-local scoped session."""
+        return Session()
 
     async def generate_stats(self, user_id: int):
         try:
@@ -60,7 +63,7 @@ class StatsService:
             self.db.rollback()
             raise HTTPException(status_code=500, detail=str(e))
         finally:
-            self.db.close()
+            Session.remove()
             return stats
 
     async def get_stats(self, user_id: int):

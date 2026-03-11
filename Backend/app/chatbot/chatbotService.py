@@ -26,8 +26,12 @@ class ChatbotService:
     """Service encapsulating all chatbot-related logic including LLM calls and DB ops."""
     def __init__(self):
         self.MAX_ATTEMPTS = 5
-        self.db = Session()
         self.ticket_service = TicketService()
+
+    @property
+    def db(self):
+        """Return the thread-local scoped session."""
+        return Session()
 
     @staticmethod
     def _extract_json_from_parts(parts: list[dict]) -> str:
@@ -209,7 +213,7 @@ class ChatbotService:
             self.db.rollback()
             raise HTTPException(status_code=500, detail=str(e))
         finally:
-            self.db.close()
+            Session.remove()
 
     async def get_chat_history(self, session_id: str):
         try:
@@ -222,7 +226,7 @@ class ChatbotService:
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
         finally:
-            self.db.close()
+            Session.remove()
 
     async def get_all_chats(self, user_id: int):
         try:
@@ -231,7 +235,7 @@ class ChatbotService:
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
         finally:
-            self.db.close()
+            Session.remove()
 
     async def update_chat_history(self, chatbot_request: ChatbotRequest):
         try:
@@ -247,7 +251,7 @@ class ChatbotService:
             self.db.rollback()
             raise HTTPException(status_code=500, detail=str(e))
         finally:
-            self.db.close()
+            Session.remove()
 
     # -------------------------
     # SSE Streaming Methods
