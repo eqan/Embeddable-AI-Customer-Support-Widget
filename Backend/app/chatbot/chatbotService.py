@@ -195,7 +195,7 @@ class ChatbotService:
                 user_id=user_id,
                 session_id=chatbot_request.session_id,
                 message=chatbot_request.message,
-                chat_history=str(chatbot_request.chat_history),
+                chat_history=json.dumps(chatbot_request.chat_history),
                 created_at=datetime.utcnow(),
                 updated_at=datetime.utcnow(),
             )
@@ -240,7 +240,7 @@ class ChatbotService:
             chat = self.db.query(Chat).filter(Chat.session_id == chatbot_request.session_id).first()
             if chat:
                 chat.message = chatbot_request.message
-                chat.chat_history = str(chatbot_request.chat_history)
+                chat.chat_history = json.dumps(chatbot_request.chat_history)
                 chat.updated_at = datetime.utcnow()
                 self.db.commit()
                 self.db.refresh(chat)

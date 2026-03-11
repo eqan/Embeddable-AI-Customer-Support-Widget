@@ -77,28 +77,20 @@ class StatsService:
     def _parse_chat_history(chat_history_str: str):
         """Safely load ``chat_history_str`` into a Python list.
 
-        The column is currently stored as a *stringified* Python list that uses
-        single-quoted keys/values, which is **not** valid JSON.  We therefore first
-        attempt ``ast.literal_eval``.  If that fails, we fall back to
-        ``json.loads`` which will correctly parse real JSON strings (double quoted
-        keys/values).
-
-        A 100 % valid return value is *always* a list – an empty list is returned
-        for any malformed payloads.
+        New rows are stored as proper JSON via ``json.dumps()``.  Legacy rows
+        used ``str()`` (single-quoted Python repr), so ``ast.literal_eval`` is
+        kept as a fallback.
         """
+        import json as _json
 
-        # 1. Try ``ast.literal_eval`` for the typical single-quoted representation.
         try:
-            history = ast.literal_eval(chat_history_str)
-        except (SyntaxError, ValueError):
-            # 2. Fall back to proper JSON.
-            import json
+            history = _json.loads(chat_history_str)
+        except (TypeError, ValueError):
             try:
-                history = json.loads(chat_history_str)
-            except (TypeError, json.JSONDecodeError):
-                return []  # completely unparseable – treat as empty
+                history = ast.literal_eval(chat_history_str)
+            except (SyntaxError, ValueError):
+                return []
 
-        # 3. Guard against bad data
         return history if isinstance(history, list) else []
 
     @staticmethod
