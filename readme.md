@@ -17,14 +17,26 @@ This document details the completed work for the Embeddable AI Customer Support 
 2. Set up a PostgreSQL DB instance.
 3. Fill out environment variables based on .env.example. Key variables include:
 
+```
 MODEL_API_KEY=your_gemini_api_key
-MODEL_NAME=gemini-2.0-flash
+MODEL_NAME=gemini-2.5-flash
 DB_USER=...
 DB_PASSWORD=...
+SECRET_KEY=your_jwt_secret
+```
 
 Then finally run `python3 app.py`, it will create the table automatically and run the server.
 
 `uvicorn app:app --host 0.0.0.0 --port 8000 --reload` command for live debugging
+
+### Running Tests
+
+```bash
+cd Backend
+uv run pytest tests/ -v -s
+```
+
+Tests are organized by module (chatbot, auth, ingestion, stats, ticket, health) using JSON-driven parametrized cases. External LLM tests are tagged `@pytest.mark.external` and can be skipped by default.
 
 ### Frontend Setup
 
@@ -99,10 +111,10 @@ That’s it — the chatbot should be up and running on your local machine.
 
 **Requirements Met:**
 
-- **Real-time chat interface with the AI:** Fulfilled. The chatbot provides a real-time chat experience.
-- **AI should provide contextual responses about the company/website:** Fulfilled. Pinecone VectorDB to index specialized data, FireCrawl scrapes the provided URLs and then are indexed by PineCone to provide accurate context. The AI (Google Gemini Flash 2.0 with Google Search support) uses the provided `hostUrl` and `hostDescription` to gather real-time information about the company for contextual responses.
+- **Real-time chat interface with the AI:** Fulfilled. The chatbot provides a real-time streaming chat experience via Server-Sent Events (SSE) with a typewriter animation effect.
+- **AI should provide contextual responses about the company/website:** Fulfilled. Pinecone VectorDB to index specialized data, FireCrawl scrapes the provided URLs and then are indexed by PineCone to provide accurate context. The AI (Google Gemini 2.5 Flash with Google Search support) uses the provided `hostUrl` and `hostDescription` to gather real-time information about the company for contextual responses.
 - **Support for rich responses (buttons, forms, calendar pickers):** Fulfilled. The chatbot supports in-built calendar (Calendly scheduling) and forms (human handoff), and has some support for Markdown.
-- **Chat history within the session:** Fulfilled. Chat history within the session is retained.
+- **Chat history within the session:** Fulfilled. Chat history within the session is retained and stored as proper JSON in the database.
 - **Professional, clean UI/UX:** Fulfilled. The chatbot is described as highly professional and responsive
 
 **Demo Screenshots:**
@@ -116,7 +128,11 @@ That’s it — the chatbot should be up and running on your local machine.
 
 **Implementation Details:**
 
-- All user sessions and their chat histories are stored in the backend database.
+- All user sessions and their chat histories are stored in the backend database as valid JSON (`json.dumps()`).
+- The chatbot uses a **two-phase SSE streaming architecture**:
+  - **Phase 1 (Intent Classification):** A lightweight Gemini call classifies the user's intent as `regular`, `booking`, or `handoff` (~200-500ms).
+  - **Phase 2 (Conditional Response):** For regular intents, text tokens are streamed via Gemini `streamGenerateContent`. Booking and handoff intents emit structured action events.
+- The frontend consumes SSE events via `fetch` + `ReadableStream` and renders text with a character-by-character typewriter animation.
 
 ## 3. Action 1: Google Calendar Integration (Required)
 
@@ -203,22 +219,28 @@ That’s it — the chatbot should be up and running on your local machine.
 
 - PostgreSQL is the chosen database for logging interactions in local development but Supabase provides instance of PostgreSQL in production so wouldn't be an issue. Furthermore Sentry is chosen for error and issues logging of the APIs.
 
-## Technical Stack Requirements
+## Technical Stack
 
 **Backend:**
 
-- **Database:** PostgreSQL 14, PineCone VectorDB
-- **LLM:** Google Gemini Flash 2.0 (via OpenRouter API, with Google Search Support enabled), Deep Seek.
-- **APIs:** Email service (EmailJS[Used in Frontend]), Calendly (instead of Google Calendar API).
-- **Framework:** FAST API with Python.
-- **Other:** Alembic(Data Migrations), Sentry(Issues Logging), Rate Limiter, Google Authentication, Ruff(Python Linter), Pydantic(Typing Within Python), SQL Alchemy(ORM), Voyage AI(Embedding Model), FireCrawl AI(AI Powered WebScrapper).
+- **Framework:** FastAPI (Python), async endpoints with `aiohttp` for non-blocking LLM calls.
+- **Database:** PostgreSQL (SQLAlchemy ORM with `scoped_session` for thread-safe, per-request sessions), Alembic for migrations.
+- **LLM:** Google Gemini 2.5 Flash (via Google AI Studio API, with Google Search grounding enabled), DeepSeek (for ingestion/reasoning).
+- **Streaming:** Server-Sent Events (SSE) via `StreamingResponse` with two-phase architecture (intent classification + conditional streaming).
+- **Vector Search:** Pinecone VectorDB for RAG, Voyage AI embeddings (`voyage-3`).
+- **Scraping:** Firecrawl AI for website content extraction.
+- **Auth:** Google OAuth + JWT tokens via `Authorization: Bearer` header, `pyjwt` for encode/decode.
+- **Config:** Pydantic `BaseSettings` for validated, type-coerced environment variables (single centralized instance).
+- **Monitoring:** Sentry (error tracking), SlowAPI (rate limiting).
+- **Testing:** pytest with JSON-driven parametrized test cases, custom assertion helpers, SSE stream assertions. ~90 test cases across 6 modules.
+- **Other:** APScheduler (background stats cron), Ruff (linting).
 
 **Frontend:**
 
-- **Widget:** Vanilla JS.
-- **Styling:** Scoped CSS.
-- **Build:** Bundling for easy distribution.
-- **Other:** EmailJS, Calendly, Google Authentication, Markdown parser, Emoji Picker, HTML.
+- **Widget:** Vanilla JS (single embeddable IIFE).
+- **Styling:** Scoped CSS with typewriter animation (blinking cursor).
+- **SSE Consumer:** `fetch` + `ReadableStream` for streaming chat responses.
+- **Other:** EmailJS, Calendly (iFrame), Google Identity Services, Markdown parser, Emoji Picker.
 
 ## Architecture Considerations for Future
 
@@ -232,6 +254,9 @@ That’s it — the chatbot should be up and running on your local machine.
 
 - The backend infrastructure is built on a "screaming architecture," emphasizing modularity and ease of modification. Furthermore OOP(Object Oriented Programming) is being utilized for service modules which can allow us for easy import of modules in other services and Functional Programming for REST APIs.
 - The chatbot is designed to be highly modular, allowing most changes to be handled by adjusting frontend parameters, with the backend automatically adapting.
+- Thread-safe database access via SQLAlchemy `scoped_session` — each request gets its own isolated session, preventing stale reads and transaction leaks.
+- Two-phase SSE streaming for the chatbot: a lightweight intent classification call followed by conditional streaming (text tokens for regular queries, structured action events for booking/handoff).
+- Centralized configuration through a single Pydantic `BaseSettings` instance with proper validation and type coercion.
 
 ## Deliverables
 
@@ -242,15 +267,16 @@ That’s it — the chatbot should be up and running on your local machine.
   - Basic customization options: Covered by the `ChatbotWidgetConfig`.
 - **Backend API:**
 
-  - RESTful API endpoints for chat, calendar, and support requests: Implemented with FAST API.
-  - Google Calendar integration for availability and booking: Fulfilled through Calendly integration
+  - RESTful API endpoints for chat, calendar, and support requests: Implemented with FastAPI.
+  - SSE streaming endpoint (`POST /chatbot-response/stream`) for real-time response delivery.
+  - Google Calendar integration for availability and booking: Fulfilled through Calendly integration.
   - Email notification system for support requests: Implemented using EmailJS.
-  - Database operations for logging interactions: Handled with Postgres, PineCone and Sentry.
-  - Web Scrapping: Handled by Firecrawl AI
+  - Database operations for logging interactions: Handled with PostgreSQL, Pinecone and Sentry.
+  - Web Scraping: Handled by Firecrawl AI.
 - **Database Setup:**
 
   - PostgreSQL Native project with proper tables for conversations, bookings, and support requests: Implemented except for bookings as Calendly is handling it automatically.
-  - Vector embeddings setup for AI context: PineCone VectorDB(Large Knowledge Base) + Google Search with Gemini 2.0(Short Real Time Knowledge Base)
+  - Vector embeddings setup for AI context: Pinecone VectorDB (Large Knowledge Base) + Google Search with Gemini 2.5 Flash (Short Real Time Knowledge Base)
 
   Creating a revision: `alembic revision -m "Description of the revision"`
   Upgrading To latest Postgres Migration: `alembic upgrade head`
@@ -276,16 +302,17 @@ That’s it — the chatbot should be up and running on your local machine.
 
 - **Technical Implementation (40%):**
 
-  - Clean, well-organized code: Implied by the "screaming architecture", OOP for services + Functional Programming and choice of frameworks (FAST API, SQL Alchemy).
-  - Proper error handling: Sentry is installed in the backend for real-time system failure updates and bug tracking.
-  - Security best practices: Google OAuth, Rate limiting, CORS configuration, token-based authentication for requests, and payload limits are implemented.
+  - Clean, well-organized code: Implied by the "screaming architecture", OOP for services + Functional Programming and choice of frameworks (FastAPI, SQLAlchemy). Centralized configuration via Pydantic `BaseSettings`.
+  - Proper error handling: Sentry is installed in the backend for real-time system failure updates and bug tracking. Proper HTTP status codes (401 for auth failures, 422 for validation).
+  - Security best practices: Google OAuth, JWT via `Authorization: Bearer` header (not request body), rate limiting, CORS configuration, and payload limits are implemented.
+  - Testing: Comprehensive pytest suite with ~90 test cases covering validation, auth, response schemas, SSE streaming, and payload limits.
   - Widget integration works smoothly: Confirmed by the description of the embeddable and customizable widget
 - **Feature Completeness (40%):**
 
   - Google Calendar integration works correctly: Fulfilled via Calendly.
   - Human handoff form and email system functions properly: Fulfilled using EmailJS and the in-built issue tracking.
   - entry.
-  - AI provides relevant responses: Fulfilled by PineCone VectorDB and Gemini 2.0 with Google Search capabilities.
+  - AI provides relevant responses: Fulfilled by PineCone VectorDB and Gemini 2.5 Flash with Google Search capabilities.
 - **User Experience (20%):**
 
   - Intuitive and responsive interface: Confirmed by the description and provided screenshots
@@ -303,10 +330,10 @@ That’s it — the chatbot should be up and running on your local machine.
    - Not directly applicable as Calendly is used. Calendly's service availability would be the concern, and it's a robust, proven solution.
 3. **How will you manage conversation context for the AI?**
 
-   - Chat history within the session is retained. The AI leverages Google Gemini Flash 2.0 with Google Search support and is provided with `hostUrl` and `hostDescription` for real-time contextual information. Alongside we are using Pinecone VectorDB to get specialized indexed data.
+   - Chat history within the session is retained as valid JSON. The AI leverages Google Gemini 2.5 Flash with Google Search grounding and is provided with `hostUrl` and `hostDescription` for real-time contextual information. Responses are streamed via SSE with a two-phase architecture (intent classification + conditional streaming). Alongside we are using Pinecone VectorDB to get specialized indexed data.
 4. **What security measures will you implement?**
 
-   - Google OAuthentication, Rate limiting for API calls, CORS configuration, token-based authentication for requests, and payload limits are implemented. Sentry is also used for real-time system failure updates and bug tracking.
+   - Google OAuth, JWT tokens via standard `Authorization: Bearer` header (proper OAuth2 convention), rate limiting for API calls, CORS configuration, and payload limits are implemented. Sentry is also used for real-time system failure updates and bug tracking.
 5. **How will you handle different timezones for calendar bookings?**
 
    - Handled inherently by Calendly's built-in functionality
