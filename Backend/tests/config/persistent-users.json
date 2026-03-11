@@ -5,13 +5,13 @@
   "users": {
     "primary": {
       "full_name": "Test Primary User",
-      "email": "eqan.ahmad123@gmail.com",
+      "email": "",
       "token": "",
       "description": "Primary test user for most test modules"
     },
     "secondary": {
       "full_name": "Test Secondary User",
-      "email": "eqan.ahmad123@gmail.com",
+      "email": "",
       "token": "",
       "description": "Secondary test user for multi-user scenarios"
     }
